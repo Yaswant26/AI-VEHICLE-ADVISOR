@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI Vehicle Advisor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--tx:#1d1d1b;--mu:#6b6a64;--ac:#0f6e56;--ac2:#e1f5ee;--bd:#e2e0d8;--warn:#b45309;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171716;--card:#232321;--tx:#f1efe8;--mu:#a09e95;--ac:#5dcaa5;--ac2:#0f3d31;--bd:#3a3935;--warn:#f0a85a}}
+:root[data-theme="dark"]{--bg:#171716;--card:#232321;--tx:#f1efe8;--mu:#a09e95;--ac:#5dcaa5;--ac2:#0f3d31;--bd:#3a3935;--warn:#f0a85a}
+html{color-scheme:light dark;scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:880px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:26px;margin:8px 0 4px}
+p.sub{color:var(--mu);margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+label{display:block;font-size:13px;color:var(--mu);margin-bottom:4px}
+select,input[type=range],textarea{width:100%;font:inherit;color:var(--tx)}
+select,textarea{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:8px}
+textarea{resize:vertical;min-height:70px}
+.val{font-weight:600;color:var(--ac)}
+button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:11px 18px;background:var(--ac);color:var(--bg);cursor:pointer}
+button:disabled{opacity:.5;cursor:wait}
+.res{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.v{border:1px solid var(--bd);border-radius:12px;padding:12px;background:var(--card)}
+.v.top{border-color:var(--ac);background:var(--ac2)}
+.v h3{margin:0 0 2px;font-size:17px}
+.m{font-size:13px;color:var(--mu)}
+.bar{height:6px;border-radius:3px;background:var(--bd);margin:8px 0 6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ac)}
+.chip{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;background:var(--bg);border:1px solid var(--bd);margin:2px 4px 0 0}
+#ai,.ai2{white-space:pre-wrap;margin-top:12px}
+input[type=text]{width:100%;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:8px}
+#detail h2{margin:0 0 4px;font-size:22px}
+.sec{font-size:15px;margin:20px 0 8px;color:var(--ac)}
+.sc{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+td{padding:6px 8px;border-bottom:1px solid var(--bd)}
+td.k{color:var(--mu);white-space:nowrap}
+.cols{display:flex;flex-wrap:wrap;gap:8px}
+.sw{display:inline-flex;align-items:center;gap:6px;font-size:13px;border:1px solid var(--bd);border-radius:99px;padding:3px 10px 3px 4px}
+.sw i{width:18px;height:18px;border-radius:50%;border:1px solid var(--bd);display:block}
+.chart{display:flex;gap:4px;align-items:flex-end;min-width:420px;height:112px}
+.col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;font-size:10px;color:var(--mu)}
+.bx{width:100%;background:var(--bd);border-radius:3px 3px 0 0;margin:2px 0}
+.bx.neg{background:var(--warn)}
+.col.best .bx{background:var(--ac)}
+.col.now{font-weight:700;color:var(--tx)}
+.col.now .bx{outline:2px solid var(--tx)}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+a.btn{background:var(--ac2);color:var(--ac);text-decoration:none;font-weight:600;font-size:14px;padding:9px 14px;border-radius:10px;border:1px solid var(--ac)}
+#detail ul{padding-left:20px;margin:0}
+#detail li{margin-bottom:4px}
+:root{--bg:#edf1f0;--card:#fff;--tx:#10201f;--mu:#5a6b69;--ac:#0b6b52;--ac2:#dff3ec;--bd:#d6dfdc;--amb:#f5b301}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1415;--card:#142123;--tx:#e9f2ef;--mu:#93a8a4;--ac:#4fd1a5;--ac2:#0f3a30;--bd:#233836;--amb:#f5b301}}
+:root[data-theme="dark"]{--bg:#0b1415;--card:#142123;--tx:#e9f2ef;--mu:#93a8a4;--ac:#4fd1a5;--ac2:#0f3a30;--bd:#233836;--amb:#f5b301}
+body{font-family:'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif}
+h1,h2,h3,.sec{font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif}
+.hero{position:relative;overflow:hidden;border-radius:22px;background:linear-gradient(135deg,#0d2526 0%,#124a43 100%);color:#f1f7f4;padding:30px 24px 62px;margin:4px 0 20px}
+.hero .ht{max-width:560px;position:relative;z-index:1}
+.hero h1{font-size:clamp(28px,6vw,42px);line-height:1.05;font-weight:800;margin:0 0 10px;letter-spacing:-.02em}
+.hero p.sub{color:#b9d3cc;margin:0 0 16px;max-width:46ch}
+.stats{display:flex;flex-wrap:wrap;gap:8px}
+.stats span{font-size:13px;font-weight:500;padding:5px 12px;border-radius:99px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18)}
+.road{position:absolute;left:0;right:0;bottom:0;height:30px;background:#081819}
+.road::after{content:'';position:absolute;left:0;right:0;top:13px;height:4px;background:linear-gradient(90deg,var(--amb) 50%,transparent 50%);background-size:56px 4px;animation:drive 1.4s linear infinite}
+@keyframes drive{to{background-position:-56px 0}}
+.car{position:absolute;right:22px;bottom:24px;width:180px;height:auto}
+@media (max-width:560px){.car{width:110px;right:12px;opacity:.9}.hero{padding-bottom:70px}}
+@media (prefers-reduced-motion:reduce){.road::after{animation:none}}
+.card{border-radius:20px;border-color:var(--bd);box-shadow:0 1px 2px rgba(16,32,31,.05),0 8px 24px -12px rgba(16,32,31,.18)}
+label{font-weight:500;color:var(--mu)}
+select,input[type=text],textarea{border-radius:10px;background:var(--bg)}
+select:focus-visible,input:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--amb);outline-offset:2px}
+input[type=range]{accent-color:var(--ac)}
+.val{font-family:'Bricolage Grotesque',sans-serif;font-size:18px}
+button{border-radius:12px;padding:13px 24px;font-size:16px;box-shadow:0 6px 16px -6px var(--ac);transition:transform .15s}
+button:hover:not(:disabled){transform:translateY(-1px)}
+#out>.card:first-child{border-left:6px solid var(--amb)}
+#out h2{font-size:22px;margin:24px 0 14px}
+.res{gap:22px 14px;padding-top:10px}
+.v{position:relative;border-radius:16px;padding:16px;transition:border-color .15s,transform .15s}
+.v:hover{border-color:var(--ac);transform:translateY(-2px)}
+.v.top{border:2px solid var(--ac)}
+.v.top::before{content:'Best match';position:absolute;top:-12px;left:14px;background:var(--amb);color:#1a1a1a;font-size:12px;font-weight:700;padding:3px 12px;border-radius:99px}
+.v h3{font-size:18px;font-weight:800;letter-spacing:-.01em}
+.bar{height:8px;border-radius:4px}
+.bar i{background:linear-gradient(90deg,var(--ac),var(--amb))}
+.chip{background:var(--ac2);border-color:transparent;color:var(--ac);font-weight:500}
+#detail{border-top:6px solid var(--ac)}
+#detail h2{font-size:28px;font-weight:800;letter-spacing:-.02em}
+.sec{font-size:17px;font-weight:800;margin:26px 0 10px;padding-left:10px;border-left:4px solid var(--amb);color:var(--tx)}
+tr:nth-child(even) td{background:var(--bg)}
+td{border-bottom:0}
+.bx{border-radius:5px 5px 0 0}
+.col.best .bx{background:linear-gradient(var(--ac),var(--amb))}
+a.btn{border-radius:12px;transition:background .15s}
+a.btn:hover{background:var(--ac);color:var(--bg)}
+.note{line-height:1.45}
+.gal{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.gp{background:var(--bg);border:1px solid var(--bd);border-radius:14px;padding:12px}
+.gp svg{width:100%;height:auto;display:block}
+.cap{font-size:12px;color:var(--mu);margin:4px 0}
+.dot{width:28px;height:28px;padding:0;border-radius:50%;border:2px solid var(--bd);box-shadow:none}
+.dot.on{outline:3px solid var(--amb);outline-offset:1px}
+.shw{border:1px solid var(--bd);border-radius:12px;padding:10px 14px;margin-bottom:8px;background:var(--bg)}
+input[type=number]{width:100%;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:8px}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin:0 0 16px;padding-bottom:4px}
+.tabs button{background:var(--card);color:var(--tx);border:1px solid var(--bd);box-shadow:none;padding:9px 16px;border-radius:99px;font-size:14px;white-space:nowrap}
+.tabs button.on{background:var(--ac);color:var(--bg);border-color:var(--ac)}
+section[hidden]{display:none}
+h2{font-family:'Bricolage Grotesque',sans-serif;margin:0 0 12px}
+.acts{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}
+button.mini{padding:5px 12px;font-size:13px;box-shadow:none;background:var(--ac2);color:var(--ac);border:1px solid var(--ac);border-radius:99px}
+button.mini.on{background:var(--ac);color:var(--bg)}
+.sfc{font-size:13px;font-weight:700;color:var(--amb)}
+.cc{background:var(--bg);border:1px solid var(--bd);border-radius:14px;padding:14px}
+.cc h4{margin:0 0 4px;font-size:14px;color:var(--mu);font-weight:500}
+.cc .big{font-family:'Bricolage Grotesque',sans-serif;font-size:24px;font-weight:800;margin-bottom:8px}
+.kv{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:4px 0;border-top:1px solid var(--bd)}
+.res3{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-top:14px}
+.stk{display:flex;height:12px;border-radius:6px;overflow:hidden;margin-bottom:8px}
+.stk i{display:block;height:100%}
+.dotc{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.cmpbar{display:flex;gap:8px;margin-bottom:12px}
+.cmpbar select,.cmpbar input{flex:1}
+table.cmp{min-width:480px}
+table.cmp th{text-align:left;padding:8px;vertical-align:top;font-family:'Bricolage Grotesque',sans-serif}
+td.best{background:var(--ac2);color:var(--ac);font-weight:700}
+.chat{border:1px solid var(--bd);border-radius:14px;padding:10px;height:340px;overflow-y:auto;background:var(--bg);margin:12px 0;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:88%;padding:9px 12px;border-radius:14px;white-space:pre-wrap;font-size:15px}
+.msg.u{align-self:flex-end;background:var(--ac);color:var(--bg)}
+.msg.a{align-self:flex-start;background:var(--card);border:1px solid var(--bd)}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.v{animation:up .4s both}
+@media (prefers-reduced-motion:reduce){.v{animation:none}}
+.ring{position:absolute;top:12px;right:12px;width:46px;height:46px;border-radius:50%;background:conic-gradient(var(--ac) calc(var(--p)*1%),var(--bd) 0);display:grid;place-items:center;font-weight:800;font-size:13px;isolation:isolate}
+.ring::before{content:'';position:absolute;inset:5px;border-radius:50%;background:var(--card);z-index:-1}
+.v.top .ring::before{background:var(--ac2)}
+.v .bar{display:none}
+.v h3{padding-right:54px}
+.tip{margin-top:14px;font-size:14px;padding:8px 14px;border-radius:12px;background:rgba(245,179,1,.16);border:1px solid rgba(245,179,1,.45);max-width:560px}
+.themebtn{position:absolute;top:14px;right:14px;z-index:2;padding:6px 12px;font-size:16px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.25);box-shadow:none;border-radius:99px}
+#sortChips{margin:6px 0 14px}
+.note{font-size:12px;color:var(--mu)}
+.err{color:var(--warn)}
+</style>
+</head>
+<body>
+<main>
+<header class="hero"><button class="themebtn" id="themeBtn" aria-label="Switch light or dark mode">☾</button><svg class="car" viewBox="0 0 200 70" aria-hidden="true"><path d="M8 52Q10 36 38 31L64 14Q70 10 80 10H126Q136 10 143 16L166 31Q192 35 194 52Z" fill="#f5b301"/><path d="M70 17H92V31H56ZM98 17H125Q131 17 135 21L148 31H98Z" fill="#0d2526"/><circle cx="52" cy="54" r="13" fill="#081819"/><circle cx="52" cy="54" r="5" fill="#b9d3cc"/><circle cx="150" cy="54" r="13" fill="#081819"/><circle cx="150" cy="54" r="5" fill="#b9d3cc"/></svg><div class="road"></div><div class="ht"><h1>Find the car that fits your life</h1>
+<p class="sub">Tell us your budget and how you drive. We rank 140+ vehicles, from scooters to buses, instantly, then Claude explains the best fit for you.</p><div class="stats"><span>Compare and save</span><span>EMI and cost tools</span><span>Showrooms near you</span><span>Best time to buy</span></div><div class="tip" id="tip"></div></div></header>
+<nav class="tabs"><button data-tab="advisor" class="on">Advisor</button><button data-tab="compare" id="tbCmp">Compare</button><button data-tab="shops">Showrooms</button><button data-tab="favs" id="tbFav">Saved</button><button data-tab="tools">Calculators</button><button data-tab="chat">AI chat</button></nav>
+<section id="t-advisor">
+
+<div class="card">
+<div class="grid">
+<div><label>Vehicle type</label><select id="cat"><option value="Car">Cars</option><option value="Bike">Bikes</option><option value="Scooter">Scooters</option><option value="Utility">Pickups and mini trucks</option><option value="Three">Autos and e-rickshaws</option><option value="Tractor">Tractors</option><option value="Truck">Trucks</option><option value="Bus">Buses and vans</option></select></div>
+<div><label>Budget: <span class="val" id="bv"></span></label><input type="range" id="budget" min="4" max="40" step="0.5" value="12"></div>
+<div id="fbody"><label>Body type</label><select id="body"><option value="">Any</option><option>Hatchback</option><option>Sedan</option><option>SUV</option><option>MPV</option></select></div>
+<div><label>Fuel</label><select id="fuel"><option value="">Any</option><option>Petrol</option><option>Diesel</option><option>CNG</option><option>Hybrid</option><option>EV</option></select></div>
+<div id="fseats"><label>Seats needed</label><select id="seats"><option value="4">4 or more</option><option value="5" selected>5 or more</option><option value="7">7</option></select></div>
+<div><label>Main use</label><select id="use"><option value="city">City commute</option><option value="hwy">Highway / long trips</option><option value="fam">Family</option><option value="pwr">Rough roads / power</option></select></div>
+<div><label>Daily driving (km)</label><select id="km"><option value="low">Under 30</option><option value="mid" selected>30–70</option><option value="high">Over 70</option></select></div>
+<div><label>Brand</label><select id="brand"><option value="">Any brand</option><option>Maruti</option><option>Tata</option><option>Hyundai</option><option>Mahindra</option><option>Toyota</option><option>Honda</option><option>Kia</option><option>MG</option><option>Skoda</option><option>Volkswagen</option><option>Renault</option><option>Nissan</option><option>Citroen</option><option>Jeep</option><option>BYD</option></select></div>
+<div id="ftrans"><label>Transmission</label><select id="trans"><option value="">Manual or automatic</option><option>Automatic</option></select></div>
+<div id="fsafe"><label>Safety rating</label><select id="safe"><option value="">Any</option><option value="4">4 stars or more (rated cars only)</option></select></div>
+</div>
+<label style="margin-top:14px">Anything else? (optional)</label>
+<textarea id="notes" placeholder="e.g. I drive from Amritsar to Delhi monthly, want low running cost and good boot space"></textarea>
+<div style="margin-top:12px"><button id="go">Find my vehicle</button></div>
+</div>
+
+<div id="out" hidden>
+<div class="card"><strong>🤖 Claude’s recommendation</strong><div id="ai" class="note">Waiting…</div></div>
+<div id="sortChips" class="acts"><button class="mini on" data-s="match">Best match</button><button class="mini" data-s="price">Lowest price</button><button class="mini" data-s="run">Cheapest to run</button><button class="mini" data-s="safe">Safest</button><button class="mini" id="copyRes">Copy shortlist</button></div>
+<h2 style="font-size:18px">Ranked matches</h2>
+<div class="res" id="res"></div>
+<p class="note">Prices, specs and colours are approximate and may have changed (lakh ₹; km/l, or km range for EVs). Confirm current details with the brand or a dealer.</p>
+</div>
+<div id="detail" class="card" hidden></div>
+</section>
+<section id="t-compare" hidden><div class="card"><h2>Compare vehicles</h2><div class="cmpbar"><select id="cmpPick"></select><button id="cmpAdd">Add</button></div><div id="cmpBox" class="sc"></div></div></section>
+<section id="t-shops" hidden><div class="card"><h2>Showroom finder</h2><div class="grid"><div><label>Type</label><select id="shType"><option value="">Cars and bikes</option><option value="car">Cars</option><option value="bike">Bikes and scooters</option></select></div><div><label>Brand</label><select id="shBrand"></select></div><div><label>Search</label><input type="text" id="shQ" placeholder="Name or area"></div></div><div style="margin-top:12px"><button id="shLoc">Sort by distance from me</button> <span class="note" id="shMsg"></span></div><div id="shMap" class="gp" style="margin-top:14px"></div><div id="shList" style="margin-top:14px"></div></div></section>
+<section id="t-favs" hidden><div class="card"><h2>Saved vehicles</h2><div id="favBox"></div></div></section>
+<section id="t-tools" hidden><div class="card"><h2>EMI calculator</h2><div id="toolEmi"></div></div><div class="card"><h2>Fuel cost calculator</h2><div id="toolFuel"></div></div><div class="card"><h2>What can I afford?</h2><p class="note">Enter the EMI you are comfortable with and we work out the car price you can aim for.</p><div id="toolAff"></div></div></section>
+<section id="t-chat" hidden><div class="card"><h2>AI vehicle assistant</h2><div id="chatChips" class="links"></div><div id="chatLog" class="chat"></div><div class="cmpbar"><input type="text" id="chatIn" placeholder="Ask about any vehicle, budget, EMI or running cost"><button id="chatGo">Send</button></div></div></section>
+</main>
+
+<script>
+const V=[
+["Maruti Alto K10",4.2,"Petrol","Hatchback",5,24,"city"],
+["Tata Tiago EV",8.7,"EV","Hatchback",5,250,"city"],
+["Maruti Swift",6.5,"Petrol","Hatchback",5,24,"city"],
+["Hyundai i20",7.5,"Petrol","Hatchback",5,20,"city,fam"],
+["Tata Punch",6.2,"Petrol","SUV",5,20,"city,pwr"],
+["Maruti Brezza CNG",9.3,"CNG","SUV",5,25,"city,fam,hwy"],
+["Hyundai Creta",11.5,"Diesel","SUV",5,17,"hwy,fam"],
+["Tata Nexon EV",13,"EV","SUV",5,350,"city,hwy"],
+["Mahindra XUV700",14,"Diesel","SUV",7,15,"hwy,fam,pwr"],
+["Toyota Innova Hycross",19,"Hybrid","MPV",7,21,"hwy,fam"],
+["Maruti Ertiga CNG",10.7,"CNG","MPV",7,26,"fam,city"],
+["Honda City",12,"Petrol","Sedan",5,18,"hwy,fam"],
+["Maruti Dzire CNG",8.9,"CNG","Sedan",5,31,"city,hwy"],
+["Toyota Hyryder",11,"Hybrid","SUV",5,27,"city,hwy,fam"],
+["Mahindra Scorpio-N",13.5,"Diesel","SUV",7,14,"pwr,hwy,fam"],
+["Hyundai Verna",11,"Petrol","Sedan",5,18,"hwy"],
+["MG Windsor EV",14,"EV","MPV",5,330,"city,fam"],
+["Skoda Slavia",10.5,"Petrol","Sedan",5,18,"hwy,pwr"],
+["Maruti Wagon R CNG",6.7,"CNG","Hatchback",5,33,"city"],
+["Maruti Baleno",6.7,"Petrol","Hatchback",5,22,"city,fam"],
+["Tata Altroz",6.9,"Petrol","Hatchback",5,19,"city,hwy"],
+["MG Comet EV",7,"EV","Hatchback",4,230,"city"],
+["Hyundai Exter",6.2,"Petrol","SUV",5,19,"city,fam"],
+["Maruti Fronx",7.5,"Petrol","SUV",5,21,"city,hwy"],
+["Toyota Taisor",7.7,"Petrol","SUV",5,21,"city,hwy"],
+["Renault Kiger",6.2,"Petrol","SUV",5,19,"city"],
+["Kia Sonet",8,"Petrol","SUV",5,18,"city,fam"],
+["Hyundai Venue",8,"Petrol","SUV",5,18,"city,hwy"],
+["Mahindra XUV 3XO",8,"Petrol","SUV",5,18,"city,hwy,pwr"],
+["Maruti Grand Vitara",11,"Petrol","SUV",5,21,"hwy,fam"],
+["Kia Seltos",11.1,"Diesel","SUV",5,17,"hwy,fam"],
+["Mahindra Thar",11.5,"Diesel","SUV",4,15,"pwr"],
+["Mahindra Bolero Neo",9.8,"Diesel","SUV",7,16,"pwr,fam"],
+["Tata Harrier",15,"Diesel","SUV",5,16,"hwy,pwr,fam"],
+["Tata Curvv EV",17.5,"EV","SUV",5,430,"city,hwy,fam"],
+["Kia Carens",10.6,"Petrol","MPV",7,16,"fam,hwy"],
+["Toyota Rumion CNG",11,"CNG","MPV",7,26,"fam,city"],
+["Volkswagen Virtus",11.6,"Petrol","Sedan",5,18,"hwy,pwr"],
+["Tata Tigor CNG",7.9,"CNG","Sedan",5,26,"city,hwy"],
+["Maruti S-Presso",4.5,"Petrol","Hatchback",5,24,"city"],
+["Maruti Celerio",5.6,"Petrol","Hatchback",5,25,"city"],
+["Maruti Ignis",5.9,"Petrol","Hatchback",5,20,"city"],
+["Hyundai Grand i10 Nios",5.9,"Petrol","Hatchback",5,20,"city"],
+["Toyota Glanza",6.9,"Petrol","Hatchback",5,22,"city,fam"],
+["Tata Tiago CNG",6.9,"CNG","Hatchback",5,26,"city"],
+["Hyundai Aura",6.5,"Petrol","Sedan",5,20,"city,hwy"],
+["Honda Amaze",7.2,"Petrol","Sedan",5,19,"hwy,fam"],
+["Tata Punch EV",10,"EV","SUV",5,360,"city,fam"],
+["Skoda Kylaq",7.9,"Petrol","SUV",5,19,"city,hwy"],
+["Nissan Magnite",6,"Petrol","SUV",5,20,"city"],
+["Citroen Basalt",8,"Petrol","SUV",5,18,"city,hwy"],
+["Citroen Aircross",8.5,"Petrol","SUV",5,18,"city,fam"],
+["Kia Syros",9,"Petrol","SUV",5,18,"city,fam"],
+["MG Astor",10,"Petrol","SUV",5,14,"city,hwy"],
+["Skoda Kushaq",10.9,"Petrol","SUV",5,18,"hwy,pwr"],
+["Volkswagen Taigun",11.7,"Petrol","SUV",5,18,"hwy,pwr"],
+["Honda Elevate",11.9,"Petrol","SUV",5,16,"hwy,fam"],
+["Maruti Jimny",12.7,"Petrol","SUV",4,16,"pwr"],
+["Mahindra Scorpio Classic",13.6,"Diesel","SUV",7,15,"pwr,fam,hwy"],
+["MG Hector",14,"Petrol","SUV",5,14,"hwy,fam"],
+["Tata Safari",15.5,"Diesel","SUV",7,16,"hwy,fam,pwr"],
+["Hyundai Alcazar",15,"Diesel","SUV",7,17,"hwy,fam"],
+["Mahindra XUV400 EV",15.5,"EV","SUV",5,400,"city,hwy"],
+["Mahindra BE 6",19,"EV","SUV",5,550,"hwy,pwr"],
+["Jeep Compass",19,"Diesel","SUV",5,15,"hwy,pwr"],
+["Toyota Innova Crysta",19.9,"Diesel","MPV",7,14,"fam,hwy"],
+["MG ZS EV",18.5,"EV","SUV",5,461,"city,hwy"],
+["Mahindra XEV 9e",22,"EV","SUV",5,530,"hwy,fam"],
+["BYD Atto 3",25,"EV","SUV",5,520,"hwy,fam"],
+["Maruti Invicto",25,"Hybrid","MPV",7,23,"fam,hwy"],
+["BYD eMAX 7",26,"EV","MPV",7,420,"fam,city"],
+["Toyota Fortuner",34,"Diesel","SUV",7,12,"pwr,hwy,fam"],
+["MG Gloster",39,"Diesel","SUV",7,11,"pwr,hwy,fam"],
+["Hero HF Deluxe",0.62,"Petrol","Commuter",2,70,"city"],
+["Hero Splendor Plus",0.78,"Petrol","Commuter",2,70,"city,fam"],
+["Honda Shine 100",0.66,"Petrol","Commuter",2,65,"city"],
+["Honda Shine 125",0.85,"Petrol","Commuter",2,60,"city,fam,hwy"],
+["Bajaj Platina 110",0.7,"Petrol","Commuter",2,70,"city,fam"],
+["Hero Glamour",0.85,"Petrol","Commuter",2,60,"city,hwy"],
+["TVS Raider 125",0.9,"Petrol","Commuter",2,55,"city,hwy"],
+["Bajaj Freedom 125 CNG",0.95,"CNG","Commuter",2,100,"city,fam"],
+["Bajaj Pulsar N160",1.3,"Petrol","Sports",2,45,"hwy,pwr"],
+["TVS Apache RTR 160",1.2,"Petrol","Sports",2,45,"hwy,pwr"],
+["Yamaha R15 V4",1.8,"Petrol","Sports",2,40,"hwy,pwr"],
+["KTM Duke 200",2,"Petrol","Sports",2,35,"pwr,hwy"],
+["Royal Enfield Hunter 350",1.5,"Petrol","Cruiser",2,36,"city,hwy"],
+["Royal Enfield Classic 350",1.95,"Petrol","Cruiser",2,35,"hwy"],
+["Hero Xpulse 200 4V",1.5,"Petrol","Adventure",2,40,"pwr,hwy"],
+["Royal Enfield Himalayan 450",2.85,"Petrol","Adventure",2,30,"pwr,hwy"],
+["Revolt RV400",1.4,"EV","Commuter",2,150,"city"],
+["Honda Activa 6G",0.8,"Petrol","Scooter",2,50,"city,fam"],
+["Honda Activa 125",0.9,"Petrol","Scooter",2,48,"city,fam,hwy"],
+["Honda Dio",0.75,"Petrol","Scooter",2,48,"city"],
+["TVS Jupiter",0.78,"Petrol","Scooter",2,50,"city,fam"],
+["TVS Jupiter 125",0.88,"Petrol","Scooter",2,48,"city,fam,hwy"],
+["Suzuki Access 125",0.82,"Petrol","Scooter",2,50,"city,fam"],
+["Hero Destini 125",0.8,"Petrol","Scooter",2,50,"city,fam"],
+["Yamaha Fascino 125",0.8,"Petrol","Scooter",2,50,"city"],
+["Ola S1 X",0.85,"EV","Scooter",2,150,"city"],
+["Ather Rizta",1.1,"EV","Scooter",2,160,"city,fam,hwy"],
+["TVS iQube",1.1,"EV","Scooter",2,150,"city,fam"],
+["Bajaj Chetak",1.2,"EV","Scooter",2,125,"city,fam"],
+["Hero Vida V2",0.95,"EV","Scooter",2,140,"city"],
+["Tata Ace Gold",4,"Diesel","Mini truck",2,22,"city"],
+["Mahindra Jeeto",4.8,"Diesel","Mini truck",2,28,"city"],
+["Maruti Super Carry",5.5,"Petrol","Mini truck",2,18,"city,hwy"],
+["Mahindra Supro",6.3,"Diesel","Mini truck",2,24,"city,hwy"],
+["Tata Ace EV",8.7,"EV","Mini truck",2,150,"city"],
+["Ashok Leyland Dost+",8,"Diesel","Mini truck",2,15,"hwy,pwr"],
+["Tata Intra V30",7.9,"Diesel","Pickup",2,15,"hwy,pwr"],
+["Mahindra Bolero Pik-Up",9.8,"Diesel","Pickup",3,14,"pwr,hwy,fam"],
+["Bajaj RE CNG",2.4,"CNG","Auto",4,30,"city,fam"],
+["Piaggio Ape City",2.3,"Diesel","Auto",4,28,"city,fam"],
+["Mahindra Treo",3.6,"EV","Auto",4,130,"city,fam"],
+["Atul Gem Paxx",1.8,"EV","E-rickshaw",5,100,"city,fam"],
+["Mahindra Alfa Mini",1.5,"EV","E-rickshaw",4,85,"city"],
+["Bajaj Maxima Cargo",2.9,"CNG","Cargo three-wheeler",2,28,"city"],
+["Piaggio Ape Xtra LDX",3.1,"Diesel","Cargo three-wheeler",2,30,"city,pwr"],
+["Mahindra Zor Grand",3.7,"EV","Cargo three-wheeler",2,100,"city"],
+["Eicher 380",5.9,"Diesel","Tractor",1,3,"city,fam"],
+["Massey 241 DI",6.2,"Diesel","Tractor",1,3,"city,fam"],
+["Mahindra 575 DI",7.2,"Diesel","Tractor",1,3.2,"fam,hwy"],
+["Sonalika DI 745 III",7.4,"Diesel","Tractor",1,3.5,"fam,hwy"],
+["Swaraj 744 FE",7.6,"Diesel","Tractor",1,3.4,"fam,hwy"],
+["John Deere 5050 D",8.2,"Diesel","Tractor",1,3.4,"fam,hwy"],
+["Swaraj 855 FE",8.4,"Diesel","Tractor",1,3.6,"pwr,fam,hwy"],
+["Kubota MU4501",8.4,"Diesel","Tractor",1,3.3,"fam,hwy"],
+["Mahindra Arjun Novo 605",9.8,"Diesel","Tractor",1,3.8,"pwr,fam,hwy"],
+["John Deere 5310",10.8,"Diesel","Tractor",1,3.8,"pwr,fam,hwy"],
+["Ashok Leyland Bada Dost",9.5,"Diesel","Light truck",2,14,"city,pwr"],
+["Eicher Pro 2049",14.5,"Diesel","Light truck",2,11,"city,hwy"],
+["Tata 407 Gold",15,"Diesel","Light truck",2,10,"city,hwy"],
+["Mahindra Furio 7",15,"Diesel","Light truck",2,9,"hwy,pwr"],
+["Ashok Leyland Ecomet 1015",25,"Diesel","Medium truck",2,7,"hwy,fam"],
+["Tata LPT 1109",27,"Diesel","Medium truck",2,6,"hwy,fam"],
+["Eicher Pro 3015",31,"Diesel","Medium truck",2,6,"hwy,pwr"],
+["BharatBenz 1415R",34,"Diesel","Medium truck",2,5,"hwy,pwr"],
+["Tata Signa 4825",38,"Diesel","Heavy truck",2,4,"hwy,pwr"],
+["BharatBenz 2823R",45,"Diesel","Heavy truck",2,3.5,"pwr"],
+["Tata Winger",19,"Diesel","Traveller van",13,11,"city,fam"],
+["Force Traveller 3350",17.5,"Diesel","Traveller van",14,10,"hwy,fam"],
+["Force Traveller 26",24,"Diesel","Mini bus",26,8,"hwy,fam"],
+["Tata Starbus Ultra",30,"Diesel","Mini bus",32,7,"city,hwy"],
+["Ashok Leyland Viking",32,"Diesel","Bus",40,6,"hwy,pwr"],
+["Eicher Skyline 41 Seater",35,"Diesel","Bus",41,6,"city,hwy"]
+].map(a=>({n:a[0],p:a[1],f:a[2],b:a[3],s:a[4],m:a[5],t:a[6].split(",")}));
+const $=id=>document.getElementById(id);
+
+
+
+function rank(q){
+  return V.filter(v=>catOf(v)===q.cat&&v.p<=q.budget*1.05&&v.s>=q.seats&&(!q.safe||(SAF[v.n]&&SAF[v.n][0]>=+q.safe))&&(!q.brand||v.n.split(' ')[0]===q.brand)&&!(q.trans==='Automatic'&&!AUTO.test(D[v.n].split('|')[2]))).map(v=>{
+    let s=40;
+    s+=Math.max(0,15-(q.budget-v.p)/q.budget*20); // use budget well, not wildly under
+    if(q.body)s+=v.b===q.body?15:-12;
+    if(q.fuel)s+=v.f===q.fuel?18:-15;
+    if(v.t.includes(q.use))s+=12;
+    const eff=v.f==="EV"?10:(catOf(v)==="Bike"||catOf(v)==="Scooter")?Math.min(10,Math.max(0,(v.m-25)/4)):["Car","Utility","Three"].includes(catOf(v))?Math.min(10,(v.m-12)/1.6):5;
+    s+=({low:0.3,mid:0.6,high:1}[q.km])*eff;
+    if(v.p>q.budget)s-=8;
+    return {...v,score:Math.max(5,Math.min(99,Math.round(s)))};
+  }).sort((a,b)=>b.score-a.score);
+}
+
+function render(list){
+  const r=$("res");r.textContent="";
+  if(!list.length){const d=document.createElement("p");d.textContent="No match under these limits. Try a higher budget or fewer seats.";r.append(d);return}
+  list.slice(0,16).forEach((v,i)=>{
+    const d=document.createElement("div");d.className="v"+(i===0&&SORT==="match"?" top":"");
+    const h=document.createElement("h3");h.textContent=(i+1)+". "+v.n;
+    const m=document.createElement("div");m.className="m";
+    m.textContent=P(v.p)+" · "+v.b+" · "+(["Car","Utility","Three","Bus"].includes(catOf(v))?v.s+" seats · ":"")+(v.f==="EV"?v.m+" km range":v.m+(catOf(v)==="Tractor"?" L/hr":" km/l"));
+    const b=document.createElement("div");b.className="bar";const bi=document.createElement("i");bi.style.width=v.score+"%";b.append(bi);
+    const sc=document.createElement("div");sc.className="m";sc.textContent="Match score "+v.score+"/100 · tap for details";
+    const rg=el('div','ring',v.score);rg.style.setProperty('--p',v.score);d.style.animationDelay=(i*45)+'ms';d.append(rg,h,m,b,sc);d.onclick=()=>show(v);d.style.cursor='pointer';
+    [v.f,...v.t.map(t=>({city:"City",hwy:"Highway",fam:"Family",pwr:"Tough roads"}[t]))].forEach(t=>{const c=document.createElement("span");c.className="chip";c.textContent=t;d.append(c)});
+    d.append(acts(v));r.append(d);
+  });
+}
+
+const D={
+'Maruti Alto K10':'1.0L petrol|67 bhp|5MT / AGS|~214 L|White,Silver,Grey,Red,Blue',
+'Tata Tiago EV':'19.2–24 kWh battery|61–75 bhp|Automatic|~240 L|White,Silver,Blue,Green',
+'Maruti Swift':'1.2L petrol|~80 bhp|5MT / AMT|~265 L|White,Silver,Grey,Red,Blue,Orange',
+'Hyundai i20':'1.2L petrol|~82 bhp|5MT / IVT|~311 L|White,Grey,Black,Red,Blue',
+'Tata Punch':'1.2L petrol|~87 bhp|5MT / AMT|~366 L|White,Grey,Red,Blue,Green,Orange',
+'Maruti Brezza CNG':'1.5L petrol + CNG|~87 bhp (CNG)|5MT|Reduced by CNG tank|White,Silver,Grey,Red,Blue',
+'Hyundai Creta':'1.5L diesel|~114 bhp|6MT / 6AT|~433 L|White,Grey,Black,Blue,Red',
+'Tata Nexon EV':'30–45 kWh battery|127–143 bhp|Automatic|~350 L|White,Grey,Blue,Green,Red',
+'Mahindra XUV700':'2.2L diesel|153–182 bhp|6MT / 6AT|~240 L (3rd row up)|White,Silver,Black,Red,Blue',
+'Toyota Innova Hycross':'2.0L strong hybrid|~183 bhp combined|e-CVT|~300 L (3rd row up)|White,Silver,Grey,Black,Brown',
+'Maruti Ertiga CNG':'1.5L petrol + CNG|~87 bhp (CNG)|5MT|Reduced by CNG tank|White,Silver,Grey,Red,Blue',
+'Honda City':'1.5L petrol|~119 bhp|6MT / CVT|~506 L|White,Silver,Grey,Black,Red',
+'Maruti Dzire CNG':'1.2L petrol + CNG|~69 bhp (CNG)|5MT|Reduced by CNG tank|White,Silver,Grey,Red,Brown',
+'Toyota Hyryder':'1.5L strong hybrid|~114 bhp combined|e-CVT|~373 L|White,Silver,Grey,Red,Blue',
+'Mahindra Scorpio-N':'2.2L diesel|130–172 bhp|6MT / 6AT|~460 L (3rd row folded)|White,Silver,Grey,Black,Red',
+'Hyundai Verna':'1.5L petrol|~113 bhp|6MT / IVT|~528 L|White,Grey,Black,Red,Blue',
+'MG Windsor EV':'38 kWh battery|~134 bhp|Automatic|~604 L|White,Silver,Black,Green,Brown',
+'Skoda Slavia':'1.0L TSI petrol|~114 bhp|6MT / 6AT|~521 L|White,Silver,Grey,Red,Blue',
+'Maruti Wagon R CNG':'1.0L petrol + CNG|~57 bhp (CNG)|5MT|Reduced by CNG tank|White,Silver,Grey,Blue,Red',
+'Maruti Baleno':'1.2L petrol|~88 bhp|5MT / AMT|~318 L|White,Silver,Grey,Red,Blue',
+'Tata Altroz':'1.2L petrol|~87 bhp|5MT / AMT|~345 L|White,Grey,Red,Blue,Black',
+'MG Comet EV':'17.3 kWh battery|~41 bhp|Automatic|Compact boot|White,Silver,Green,Black',
+'Hyundai Exter':'1.2L petrol|~83 bhp|5MT / AMT|~391 L|White,Grey,Red,Blue,Brown',
+'Maruti Fronx':'1.2L petrol|~89 bhp|5MT / AMT|~308 L|White,Silver,Grey,Red,Blue,Orange',
+'Toyota Taisor':'1.2L petrol|~89 bhp|5MT / AMT|~308 L|White,Silver,Grey,Red,Blue',
+'Renault Kiger':'1.0L petrol|~71 bhp|5MT / AMT|~405 L|White,Grey,Red,Blue,Orange',
+'Kia Sonet':'1.2L petrol|~82 bhp|5MT|~385 L|White,Grey,Black,Blue,Green',
+'Hyundai Venue':'1.2L petrol|~82 bhp|5MT|~350 L|White,Grey,Black,Red,Blue',
+'Mahindra XUV 3XO':'1.2L turbo petrol|~109 bhp|6MT / 6AT|~364 L|White,Silver,Grey,Black,Red,Blue',
+'Maruti Grand Vitara':'1.5L petrol (mild hybrid)|~101 bhp|5MT / 6AT|~373 L|White,Silver,Grey,Red,Blue',
+'Kia Seltos':'1.5L diesel|~114 bhp|6MT / 6AT|~433 L|White,Grey,Black,Blue,Green',
+'Mahindra Thar':'2.2L diesel|~130 bhp|6MT / 6AT|Small boot (4-seat layout)|White,Grey,Red,Blue,Black',
+'Mahindra Bolero Neo':'1.5L diesel|~100 bhp|5MT|~370 L (3rd row folded)|White,Silver,Grey,Brown,Black',
+'Tata Harrier':'2.0L diesel|~168 bhp|6MT / 6AT|~445 L|White,Silver,Grey,Black,Red',
+'Tata Curvv EV':'45–55 kWh battery|~148–165 bhp|Automatic|~500 L|White,Silver,Grey,Blue,Green',
+'Kia Carens':'1.5L petrol|~113 bhp|6MT / 7DCT|~216 L (3rd row up)|White,Silver,Grey,Black,Blue',
+'Toyota Rumion CNG':'1.5L petrol + CNG|~87 bhp (CNG)|5MT|Reduced by CNG tank|White,Silver,Grey,Red,Brown',
+'Volkswagen Virtus':'1.0L TSI petrol|~114 bhp|6MT / 6AT|~521 L|White,Silver,Grey,Red,Blue',
+'Tata Tigor CNG':'1.2L petrol + CNG|~72 bhp (CNG)|5MT|Reduced by CNG tank|White,Silver,Grey,Blue,Red',
+'Maruti S-Presso':'1.0L petrol|~66 bhp|5MT / AGS|~240 L|White,Silver,Grey,Orange,Blue',
+'Maruti Celerio':'1.0L petrol|~66 bhp|5MT / AGS|~313 L|White,Silver,Grey,Red,Blue',
+'Maruti Ignis':'1.2L petrol|~82 bhp|5MT / AMT|~260 L|White,Silver,Grey,Red,Blue',
+'Hyundai Grand i10 Nios':'1.2L petrol|~82 bhp|5MT / AMT|~260 L|White,Silver,Grey,Red,Blue',
+'Toyota Glanza':'1.2L petrol|~88 bhp|5MT / AMT|~318 L|White,Silver,Grey,Red,Blue',
+'Tata Tiago CNG':'1.2L petrol + CNG|~72 bhp (CNG)|5MT / AMT|Reduced by CNG tank|White,Silver,Grey,Blue,Red',
+'Hyundai Aura':'1.2L petrol / CNG|~82 bhp|5MT / AMT|~402 L|White,Silver,Grey,Red,Blue',
+'Honda Amaze':'1.2L petrol|~89 bhp|5MT / CVT|~416 L|White,Silver,Grey,Red,Blue',
+'Tata Punch EV':'25–35 kWh battery|~80–120 bhp|Automatic|~366 L|White,Grey,Blue,Green,Red',
+'Skoda Kylaq':'1.0L TSI petrol|~114 bhp|6MT / 6AT|~446 L|White,Silver,Grey,Black,Green',
+'Nissan Magnite':'1.0L petrol (NA / turbo)|~72–99 bhp|5MT / AMT / CVT|~336 L|White,Silver,Grey,Orange,Blue',
+'Citroen Basalt':'1.2L petrol (NA / turbo)|~80–109 bhp|5MT / 6AT|~470 L|White,Grey,Red,Blue,Black',
+'Citroen Aircross':'1.2L petrol (NA / turbo)|~80–109 bhp|5MT / 6AT|~444 L|White,Grey,Blue,Orange,Silver',
+'Kia Syros':'1.0L turbo petrol|~118 bhp|6MT / 7DCT|~465 L|White,Silver,Grey,Blue,Green',
+'MG Astor':'1.5L petrol|~108 bhp|5MT / CVT|~488 L|White,Silver,Grey,Red,Black',
+'Skoda Kushaq':'1.0L TSI petrol|~114 bhp|6MT / 6AT|~385 L|White,Silver,Grey,Red,Blue',
+'Volkswagen Taigun':'1.0L TSI petrol|~114 bhp|6MT / 6AT|~385 L|White,Silver,Grey,Red,Blue',
+'Honda Elevate':'1.5L petrol|~119 bhp|6MT / CVT|~458 L|White,Silver,Grey,Red,Blue',
+'Maruti Jimny':'1.5L petrol|~103 bhp|5MT / 4AT|~208 L (rear seat up)|White,Grey,Red,Blue,Black',
+'Mahindra Scorpio Classic':'2.2L diesel|~130 bhp|6MT|~460 L (3rd row folded)|White,Silver,Grey,Black,Red',
+'MG Hector':'1.5L turbo petrol|~141 bhp|6MT / CVT|~587 L|White,Silver,Grey,Black,Red',
+'Tata Safari':'2.0L diesel|~168 bhp|6MT / 6AT|~420 L (3rd row folded)|White,Silver,Grey,Black,Green',
+'Hyundai Alcazar':'1.5L diesel|~114 bhp|6MT / 6AT|~180 L (3rd row up)|White,Grey,Black,Blue,Red',
+'Mahindra XUV400 EV':'34.5–39.4 kWh battery|~148–150 bhp|Automatic|~378 L|White,Silver,Blue,Grey,Orange',
+'Mahindra BE 6':'59–79 kWh battery|~228–282 bhp|Automatic|~455 L + frunk|White,Grey,Black,Blue,Green',
+'Jeep Compass':'2.0L diesel|~168 bhp|6MT / 9AT|~438 L|White,Grey,Black,Red,Blue',
+'Toyota Innova Crysta':'2.4L diesel|~148 bhp|5MT / 6AT|~300 L (3rd row up)|White,Silver,Grey,Black,Brown',
+'MG ZS EV':'50.3 kWh battery|~174 bhp|Automatic|~448 L|White,Silver,Black,Blue,Green',
+'Mahindra XEV 9e':'59–79 kWh battery|~228–282 bhp|Automatic|~663 L|White,Grey,Black,Blue,Green',
+'BYD Atto 3':'60.5 kWh battery|~201 bhp|Automatic|~440 L|White,Grey,Blue,Black,Red',
+'Maruti Invicto':'2.0L strong hybrid|~183 bhp combined|e-CVT|~239 L (3rd row up)|White,Silver,Grey,Black,Brown',
+'BYD eMAX 7':'55–71 kWh battery|~161–201 bhp|Automatic|~180 L (3rd row up)|White,Silver,Grey,Blue,Black',
+'Toyota Fortuner':'2.8L diesel|~201 bhp|6MT / 6AT|~296 L (3rd row up)|White,Silver,Grey,Black,Brown',
+'MG Gloster':'2.0L diesel|~158–215 bhp|6MT / 8AT|~343 L (3rd row folded)|White,Silver,Grey,Black,Brown',
+'Hero HF Deluxe':'97 cc petrol|~8 bhp|4-speed manual|—|Black,Red,Blue,Grey',
+'Hero Splendor Plus':'97 cc petrol|~8 bhp|4-speed manual|—|Black,Red,Grey,Blue',
+'Honda Shine 100':'99 cc petrol|~7.3 bhp|4-speed manual|—|Black,Red,Blue,Grey',
+'Honda Shine 125':'124 cc petrol|~10.7 bhp|5-speed manual|—|Black,Red,Blue,Grey',
+'Bajaj Platina 110':'115 cc petrol|~8.4 bhp|5-speed manual|—|Black,Red,Blue,Silver',
+'Hero Glamour':'125 cc petrol|~10.7 bhp|5-speed manual|—|Black,Red,Blue,Grey',
+'TVS Raider 125':'125 cc petrol|~11.4 bhp|5-speed manual|—|Black,Red,Blue,Green',
+'Bajaj Freedom 125 CNG':'125 cc petrol + CNG|~9.5 bhp|5-speed manual|—|Black,Blue,Red,Grey',
+'Bajaj Pulsar N160':'165 cc petrol|~16 bhp|5-speed manual|—|Black,Red,Blue,White',
+'TVS Apache RTR 160':'160 cc petrol|~16 bhp|5-speed manual|—|Black,Red,Blue,White',
+'Yamaha R15 V4':'155 cc petrol|~18 bhp|6-speed manual|—|Blue,Black,Grey,Red',
+'KTM Duke 200':'200 cc petrol|~25 bhp|6-speed manual|—|Orange,White,Black,Blue',
+'Royal Enfield Hunter 350':'349 cc petrol|~20 bhp|5-speed manual|—|Black,Grey,Blue,Red',
+'Royal Enfield Classic 350':'349 cc petrol|~20 bhp|5-speed manual|—|Black,Grey,Green,Brown',
+'Hero Xpulse 200 4V':'200 cc petrol|~19 bhp|5-speed manual|—|Black,White,Red,Blue',
+'Royal Enfield Himalayan 450':'452 cc petrol|~40 bhp|6-speed manual|—|White,Grey,Black,Green',
+'Revolt RV400':'3.24 kWh battery|~8 bhp|Twist-and-go automatic|—|Black,Red,Grey,Blue',
+'Honda Activa 6G':'110 cc petrol|~7.8 bhp|CVT automatic|~18 L under-seat|White,Silver,Grey,Black,Red,Blue',
+'Honda Activa 125':'124 cc petrol|~8.2 bhp|CVT automatic|~18 L under-seat|White,Silver,Grey,Black,Red,Blue',
+'Honda Dio':'110 cc petrol|~7.8 bhp|CVT automatic|~18 L under-seat|Red,Blue,Grey,Black,Yellow',
+'TVS Jupiter':'113 cc petrol|~7.9 bhp|CVT automatic|~33 L under-seat|White,Silver,Grey,Red,Blue',
+'TVS Jupiter 125':'125 cc petrol|~8.2 bhp|CVT automatic|~32 L under-seat|White,Silver,Grey,Red,Blue',
+'Suzuki Access 125':'124 cc petrol|~8.3 bhp|CVT automatic|~22 L under-seat|White,Silver,Grey,Black,Blue',
+'Hero Destini 125':'125 cc petrol|~9 bhp|CVT automatic|~19 L under-seat|White,Grey,Black,Red,Blue',
+'Yamaha Fascino 125':'125 cc hybrid petrol|~8.2 bhp|CVT automatic|~21 L under-seat|White,Red,Blue,Grey,Black',
+'Ola S1 X':'2–4 kWh battery|~6–11 bhp|Automatic|~34 L under-seat|White,Black,Red,Blue,Grey',
+'Ather Rizta':'2.9–3.7 kWh battery|~6–8 bhp|Automatic|~56 L under-seat|White,Grey,Green,Red,Black',
+'TVS iQube':'2.2–5.1 kWh battery|~4.4–6 bhp|Automatic|~32 L under-seat|White,Silver,Grey,Blue,Red',
+'Bajaj Chetak':'3–3.5 kWh battery|~4–5 bhp|Automatic|~35 L under-seat|White,Grey,Black,Blue,Red',
+'Hero Vida V2':'2.2–3.9 kWh battery|~6 bhp|Automatic|~27 L under-seat|White,Grey,Black,Blue,Red',
+'Tata Ace Gold':'0.7L diesel|~22 bhp|5MT|Payload ~0.75 t|White,Blue,Red',
+'Mahindra Jeeto':'0.9L diesel / CNG|~27 bhp|5MT|Payload ~0.7 t|White,Silver,Blue',
+'Maruti Super Carry':'1.2L petrol / CNG|~71 bhp|5MT|Payload ~0.65 t|White,Silver,Blue',
+'Mahindra Supro':'0.9L diesel / CNG|~27 bhp|5MT|Payload ~0.9 t|White,Silver,Blue',
+'Tata Ace EV':'~21 kWh battery|~27 bhp|Automatic|Payload ~0.6 t|White,Blue',
+'Ashok Leyland Dost+':'1.5L diesel|~80 bhp|5MT|Payload ~1.5 t|White,Blue,Silver',
+'Tata Intra V30':'1.4L diesel|~70 bhp|5MT|Payload ~1.3 t|White,Silver,Blue',
+'Mahindra Bolero Pik-Up':'2.5L diesel|~75 bhp|5MT|Payload ~1.3–1.7 t|White,Silver,Grey,Blue',
+'Bajaj RE CNG':'0.2L CNG|~8 bhp|4-speed manual|3 passengers + driver|Yellow,Green,Black',
+'Piaggio Ape City':'0.4L diesel|~9 bhp|4-speed manual|3 passengers + driver|Yellow,Green,Black',
+'Mahindra Treo':'~7.4–10 kWh battery|~10 bhp|Automatic|3 passengers + driver|White,Blue,Red,Yellow',
+'Atul Gem Paxx':'~7.5 kWh battery|~5 bhp|Automatic|4 passengers + driver|Yellow,Green,Blue,Red,Black',
+'Mahindra Alfa Mini':'~4–5 kWh battery|~2 bhp|Automatic|3 passengers + driver|Yellow,Green,Blue',
+'Bajaj Maxima Cargo':'0.2L CNG|~8 bhp|4-speed manual|Payload ~0.5 t|White,Blue,Red',
+'Piaggio Ape Xtra LDX':'0.5L diesel|~9 bhp|5-speed manual|Payload ~0.7 t|White,Blue,Red',
+'Mahindra Zor Grand':'~7.4 kWh battery|~10 bhp|Automatic|Payload ~0.5 t|White,Blue,Green',
+'Eicher 380':'Diesel (~2.5L)|~40 hp|8F + 2R|Lift ~1,650 kg|Red,White',
+'Massey 241 DI':'Diesel (~2.5L)|~42 hp|8F + 2R|Lift ~1,500 kg|Red,White',
+'Mahindra 575 DI':'Diesel (~2.7L)|~45 hp|8F + 2R|Lift ~1,600 kg|Red,White',
+'Sonalika DI 745 III':'Diesel (~3.3L)|~50 hp|8F + 2R|Lift ~1,800 kg|Red,Blue,White',
+'Swaraj 744 FE':'Diesel (~3.3L)|~48 hp|8F + 2R|Lift ~1,700 kg|Red,White',
+'John Deere 5050 D':'Diesel (~2.9L)|~50 hp|8F + 4R|Lift ~1,600 kg|Green,White',
+'Swaraj 855 FE':'Diesel (~3.3L)|~52 hp|8F + 2R|Lift ~1,700 kg|Red,White',
+'Kubota MU4501':'Diesel (~2.5L)|~45 hp|8F + 4R|Lift ~1,800 kg|Orange,White',
+'Mahindra Arjun Novo 605':'Diesel (~3.4L)|~57 hp|15F + 3R|Lift ~2,200 kg|Red,White',
+'John Deere 5310':'Diesel (~2.9L)|~55 hp|12F + 4R|Lift ~2,000 kg|Green,White',
+'Ashok Leyland Bada Dost':'1.5L diesel|~80 bhp|5MT|Payload ~1.7 t|White,Blue,Silver',
+'Eicher Pro 2049':'Diesel|~80 bhp|5MT|Payload ~2.4 t|White,Blue,Red',
+'Tata 407 Gold':'3.0L diesel|~75 bhp|5MT|Payload ~2.5 t|White,Blue,Red',
+'Mahindra Furio 7':'Diesel|~110 bhp|6MT|Payload ~3.5 t|White,Blue,Red',
+'Ashok Leyland Ecomet 1015':'Diesel|~150 bhp|6MT|Payload ~7 t|White,Blue,Red',
+'Tata LPT 1109':'Diesel|~125 bhp|5MT|Payload ~6 t|White,Blue,Red',
+'Eicher Pro 3015':'Diesel|~150 bhp|6MT|Payload ~8 t|White,Blue,Red',
+'BharatBenz 1415R':'Diesel|~150 bhp|6MT|Payload ~9 t|White,Blue,Red',
+'Tata Signa 4825':'Diesel|~250 bhp|9-speed manual|Payload ~25 t|White,Blue,Red',
+'BharatBenz 2823R':'Diesel|~230 bhp|9-speed manual|Payload ~18 t|White,Blue,Red',
+'Tata Winger':'2.2L diesel|~100 bhp|5MT|13 seats + luggage|White,Silver,Blue',
+'Force Traveller 3350':'2.6L diesel|~115 bhp|5MT|14 seats + luggage|White,Silver,Blue',
+'Force Traveller 26':'2.6L diesel|~115 bhp|5MT|26 seats|White,Blue,Yellow',
+'Tata Starbus Ultra':'Diesel|~150 bhp|5MT|32 seats|White,Blue,Yellow',
+'Ashok Leyland Viking':'Diesel|~150 bhp|6MT|40 seats|White,Blue,Yellow',
+'Eicher Skyline 41 Seater':'Diesel|~150 bhp|6MT|41 seats|White,Blue,Yellow'};
+const AUTO=/AMT|AT\b|CVT|IVT|DCT|AGS|Automatic/;
+const SH={
+Maruti:[['Swani Motors (Maruti Suzuki Arena)','81 Court Rd, INA Colony, Amritsar 143001','+91 8071 645 452'],['Jaycee Motors (Maruti Suzuki Arena)','274 Grand Trunk Rd, 100 Feet Rd, Anand Nagar, East Mohan Nagar, Amritsar 143006','+91 80 6251 4303'],['Rishabh Fourwheels (Maruti Suzuki Arena)','Adarsh Soap Complex, Batala Rd, New Jhawar Nagar, Amritsar 143001','']],
+Tata:[['Novelty Tata, New Amritsar','Ground Floor, GT Rd, adjoining Arjun Marble, New Amritsar Colony, Amritsar 143006','+91 70451 68575'],['Novelty Tata, White Avenue','Ground Floor, Grand Trunk Rd, near Arjun Marble, Tagore Colony, Amritsar 143001','+91 82915 38714']],
+Hyundai:[['Novelty Hyundai','Grand Trunk Rd, near New Amritsar, New Amritsar Colony, Amritsar 143006','+91 73074 00200'],['Aryan Hyundai','Verka, Amritsar 143501','+91 70870 13240']],
+Mahindra:[['Worldwide Autozone (SUV and Commercial)','Grand Trunk Rd, near Maribella Resorts, Garden Enclave, Amritsar 143501','+91 82911 94553'],['Worldwide Autozone, Ranjit Avenue','Gumtala Sub Urban, D Block, Ranjit Avenue, Amritsar 143001','+91 82911 96459'],['Mahindra Sangam Automobiles','84, 85 Grand Trunk Rd, City Centre, Amritsar 143001','+91 1800 209 6006']],
+Toyota:[['Castle Toyota (JPA Motors)','218/219 GT Road, Daburji Road, Sultanwind, Amritsar 143006','+91 88770 08893']],
+Honda:[['Deep Honda','Fateh Garh Churian Rd, opposite Khanna Papers Mill, Amrit Nagar, Amritsar 143008','+91 75268 59999'],['Prestige Honda','Grand Trunk Rd, Sultanwind, Amritsar 143006','+91 86575 89043']],
+Kia:[['Gitansh Kia','31 Court Rd, Kennedy Avenue, Amritsar 143001','+91 82913 80772'],['Speedways Kia','NH 1A, Grand Trunk Rd, near Golden Gate, Amritsar 143022','+91 91670 76281']],
+MG:[['MG Motor, Cargo Motor Showroom','Khasra No 1248, Grand Trunk Rd, near Golden Gate, Daburji, Amritsar 143022','+91 11 4118 3819']],
+Volkswagen:[['Volkswagen Amritsar (Lally Motors)','Plot 84, 85 Grand Trunk Rd, near Bye-Pass, Daburji, Amritsar 143006','+91 98759 30610']],
+Skoda:[['HD Skoda Showroom','Grand Trunk Rd, near Golden Gate, Daburji, Sultanwind, Amritsar 143006','+91 78883 99361']],
+Renault:[['Renault Amritsar','Near Amritsar Gate, Grand Trunk Rd, New Amritsar Colony, Amritsar 143001','+91 93199 94364']],
+Nissan:[['M R Nissan','Near Amritsar Gate, Grand Trunk Rd, Mohan Vihar, New Amritsar Colony, Amritsar 143006','']],
+'B:Hero':[['Speedways Hero MotoCorp','Ground Floor, M.M. Malviya Rd, opposite Children’s Park, INA Colony, Amritsar 143001','+91 92899 22041'],['Rishabh Autos Hero MotoCorp','Adarsh Soap Complex, Batala Rd, New Jhawar Nagar, Amritsar 143001','+91 92899 22415']],
+'B:Honda':[['Aryan Honda','1-B Court Rd, near IOC petrol pump, Rani Ka Bagh, Amritsar 143001','+91 8071 878 432'],['Bhagwati Honda','Bhagwati Imperia, Grand Trunk Rd, near Railway Workshop, Putligarh, Amritsar 143001','+91 8071 879 421']],
+'B:Bajaj':[['Doaba Bajaj','Doaba Automobiles, Court Rd, INA Colony, Amritsar 143001','+91 99150 11854'],['Doaba Bajaj, Ram Talai','Shop 83, Kabari Market, Grand Trunk Rd, Ram Talai, Amritsar 143006','+91 99156 22539']],
+'B:TVS':[['Balaji Motors TVS','Rattan Singh Chowk, next to Indian Oil petrol pump, C Block, Ranjit Avenue, Amritsar 143001','+91 80 6291 6338'],['Prabhat Autowheelz TVS','Putligarh, Grand Trunk Rd, opposite Railway Workshop, Amritsar 143001','+91 80 6291 6352']],
+'B:Royal':[['Royal Enfield, Aaray Motors','SCO 88, District Shopping Complex, Gumtala Sub Urban, B Block, Ranjit Avenue, Amritsar 143001','+91 82913 61173'],['Royal Enfield, Jaycee Motors','Model Town, Mohindra Colony, Amritsar 143001','+91 82913 96873']],
+'B:Yamaha':[['AKS Motors Yamaha','351 Circular Rd, Green Avenue, Amritsar 143001',''],['Divine Yamaha','Near Navpreet Hospital, Nikah Singh Colony, Amritsar 143001','+91 98146 37857']],
+'B:KTM':[['KTM Husqvarna Amritsar','Court Rd, INA Colony, Amritsar 143001','+91 89297 59696']],
+'B:Ather':[['Ather, Lawrence Road','Novelty Building, Lawrence Road, adjoining Novelty Mall, Amritsar 143001','+91 92288 49754']],
+'B:Ola':[['Ola Electric Store','SCO-113, District Shopping Complex, Gumtala Sub Urban, B Block, Ranjit Avenue, Amritsar 143001','+91 80 6896 4050']],
+'B:Suzuki':[['Anupuma Suzuki','Majitha Rd, adjacent to Mahajan Auto Works, Gopal Nagar, Amritsar 143001','+91 98759 29282']]};
+const SIL={Hatchback:['M18 84V66Q20 56 40 54L84 50L112 28Q118 24 128 24H200Q210 24 216 30L236 52Q270 56 278 68V84Z','M92 50L116 30H142V50ZM150 30H200Q206 30 210 34L224 50H150Z'],Sedan:['M12 84V68Q14 58 36 56L86 52L116 30Q122 26 132 26H186Q196 26 204 32L226 52L264 56Q286 60 288 72V84Z','M94 52L120 32H146V52ZM154 32H186Q192 32 198 36L216 52H154Z'],SUV:['M16 86V62Q18 50 38 48L70 46L96 22Q100 18 110 18H206Q218 18 224 26L240 46Q272 50 280 64V86Z','M78 46L100 24H140V46ZM148 24H206Q214 24 218 30L232 46H148Z'],MPV:['M14 86V60Q16 48 38 46L74 44L98 20Q102 16 112 16H224Q236 16 242 24L256 46Q282 50 286 64V86Z','M82 44L104 22H150V44ZM158 22H226Q234 22 238 28L250 44H158Z']};
+function wheel(x){let sp='';for(let i=0;i<5;i++){const a=i*72*Math.PI/180;sp+='<line x1="'+x+'" y1="86" x2="'+(x+10*Math.cos(a)).toFixed(1)+'" y2="'+(86+10*Math.sin(a)).toFixed(1)+'" stroke="#4d565a" stroke-width="2.2"/>'}return '<path d="M'+(x-23)+' 86A23 23 0 0 1 '+(x+23)+' 86Z" fill="#0b1113"/><circle cx="'+x+'" cy="86" r="19" fill="#15191b"/><circle cx="'+x+'" cy="86" r="12.5" fill="url(#cgr)"/>'+sp+'<circle cx="'+x+'" cy="86" r="3" fill="#2a3134"/>'}
+function shade(h,p){const n=parseInt(h.slice(1),16),f=x=>Math.max(0,Math.min(255,Math.round(p>=0?x+(255-x)*p:x*(1+p))));return '#'+((1<<24)+(f(n>>16)<<16)+(f(n>>8&255)<<8)+f(n&255)).toString(16).slice(1)}
+function carSVG(b,c){const s=SIL[b]||SIL.SUV,t=shade(c,.45),d=shade(c,-.45);return '<svg viewBox="0 0 300 110"><defs><linearGradient id="cgb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+t+'"/><stop offset=".45" stop-color="'+c+'"/><stop offset="1" stop-color="'+d+'"/></linearGradient><linearGradient id="cgg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9fc2d1"/><stop offset=".5" stop-color="#2a4651"/><stop offset="1" stop-color="#0d1a1f"/></linearGradient><radialGradient id="cgs"><stop offset="0" stop-color="#000" stop-opacity=".45"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient><radialGradient id="cgr"><stop offset="0" stop-color="#f4f6f7"/><stop offset=".7" stop-color="#9aa3a7"/><stop offset="1" stop-color="#5b6468"/></radialGradient></defs><ellipse cx="150" cy="103" rx="138" ry="8" fill="url(#cgs)"/><path d="'+s[0]+'" fill="url(#cgb)" stroke="'+d+'" stroke-width="1.2"/><path d="M26 78H274" stroke="'+d+'" stroke-opacity=".5" stroke-width="5" stroke-linecap="round"/><path d="'+s[1]+'" fill="url(#cgg)" stroke="'+d+'" stroke-width="1"/><path d="M40 58Q150 50 262 58" stroke="#fff" stroke-opacity=".38" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M148 50V80M206 52V80" stroke="#000" stroke-opacity=".28"/><rect x="156" y="60" width="9" height="2.5" rx="1" fill="#000" fill-opacity=".4"/><rect x="212" y="60" width="9" height="2.5" rx="1" fill="#000" fill-opacity=".4"/><path d="M258 60L278 64V70L258 68Z" fill="#fffbe0" stroke="#000" stroke-opacity=".3"/><rect x="268" y="72" width="12" height="9" rx="2" fill="#1b2326"/><rect x="12" y="62" width="9" height="7" rx="2" fill="#d8332a"/>'+wheel(70)+wheel(232)+'</svg>'}
+function seat(x,y){return '<rect x="'+x+'" y="'+y+'" width="22" height="24" rx="6" style="fill:var(--ac);opacity:.85"/>'}
+function cabinSVG(n){const pos={2:[34,92],3:[22,63,104]};let s='<svg viewBox="0 0 300 150"><rect x="8" y="12" width="284" height="126" rx="46" style="fill:var(--card);stroke:var(--mu);stroke-width:2"/><rect x="40" y="26" width="10" height="98" rx="5" style="fill:var(--mu);opacity:.45"/><rect x="41" y="62" width="8" height="26" rx="2" style="fill:var(--amb)"/><circle cx="68" cy="44" r="12" style="fill:none;stroke:var(--tx);stroke-width:3"/>';const row=(x,k)=>pos[k].forEach(y=>{s+=seat(x,y)});row(96,2);if(n>=6){row(150,2);row(206,3)}else if(n>2)row(150,n===4?2:3);return s+'</svg>'}
+const HEX={White:'#f4f4f0',Silver:'#c0c3c7',Grey:'#6e7277',Black:'#1e1f21',Red:'#c0392b',Blue:'#2e5fa3',Orange:'#e07b2a',Green:'#3f8f6b',Brown:'#7a5a3a',Yellow:'#e8c21a'};
+const BR={Maruti:'Maruti Suzuki',Tata:'Tata Motors',Hyundai:'Hyundai',Mahindra:'Mahindra',Toyota:'Toyota',Honda:'Honda',MG:'MG Motor',Skoda:'Skoda',Kia:'Kia',Renault:'Renault',Volkswagen:'Volkswagen'};
+const FN={Petrol:'Petrol: easy servicing and fuel everywhere. Best if you drive under about 50 km a day.',Diesel:'Diesel: lower cost per km if you cover 60+ km daily. Check older-diesel rules if you drive into NCR cities.',CNG:'CNG: cheapest running cost. Check CNG pump queues on your regular routes. The tank reduces boot space.',Hybrid:'Hybrid: excellent city mileage with no plug-in needed. Confirm trained hybrid service support near you.',EV:'EV: plan a home charger (installation and society permission), check fast-charger coverage on your highway trips, the battery warranty (often around 8 years) and any current Punjab EV incentives.'};
+const CHK=['Ask for a full on-road price breakup (insurance, RTO, accessories, handling charges).','Compare your bank’s finance rate with the dealer’s offer.','Test drive on both city and highway roads, and check rear-seat comfort.','Check warranty, service intervals and the nearest authorised service centre.'];
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const BASE=[-1.5,2.5,4,1,1,1.5,2,2,2.5,3,2.5,6];
+let LAST={q:{},notes:''};
+function el(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function link(txt,url){const a=el('a','btn',txt);a.href=url;a.target='_blank';a.rel='noopener';return a}
+function maps(q){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q)}
+function tbl(rows){const t=el('table');rows.forEach(r=>{const tr=el('tr');r.forEach((c,i)=>tr.append(el('td',i?'':'k',c)));t.append(tr)});const w=el('div','sc');w.append(t);return w}
+function show(v){
+  const p=$('detail');p.hidden=false;p.textContent='';
+  const [eng,pw,trn,boot,cols]=D[v.n].split('|');
+  const city='Amritsar';
+  const now=new Date().getMonth();
+  p.append(el('h2','',v.n),el('div','m',v.b+' · '+v.f),acts(v));
+  p.append(el('h3','sec','Specifications'));
+  p.append(tbl([['Ex-showroom (from)',P(v.p)],['Seats',String(v.s)],['Engine / battery',eng],['Power',pw],['Transmission',trn],[LBL[catOf(v)],boot],[v.f==='EV'?'Claimed range':catOf(v)==='Tractor'?'Fuel use (indicative)':'Mileage (indicative)',v.m+(v.f==='EV'?' km':catOf(v)==='Tractor'?' L/hr':' km/l')]]));
+  p.append(el('h3','sec','Available colours'));
+  const cw=el('div','cols');
+  cols.split(',').forEach(c=>{const s=el('span','sw');const d=el('i');d.style.background=HEX[c];s.append(d,document.createTextNode(c));cw.append(s)});
+  p.append(cw,el('p','note','Popular shades. Exact names and availability vary by variant and dealer stock.'));
+  p.append(el('h3','sec','Exterior and interior preview'));
+  const gl=el('div','gal'),ex=el('div','gp'),it=el('div','gp'),exv=el('div'),dots=el('div','cols');
+  let cur=cols.split(',')[0];
+  const paint=()=>{exv.innerHTML=drawV(v,HEX[cur]);[...dots.children].forEach(d=>d.classList.toggle('on',d.title===cur))};
+  cols.split(',').forEach(c=>{const d=el('button','dot');d.title=c;d.style.background=HEX[c];d.setAttribute('aria-label',c+' colour');d.onclick=()=>{cur=c;paint()};dots.append(d)});
+  ex.append(el('div','cap','Exterior. Tap a colour.'),exv,dots);
+  if(catOf(v)==='Car'||catOf(v)==='Utility'){it.innerHTML=cabinSVG(v.s);it.prepend(el('div','cap','Seating layout, top view'));it.append(el('div','cap',v.s+' seats. '+(catOf(v)==='Car'?'Boot: ':'Load: ')+boot))}
+  else if(catOf(v)==='Bike'||catOf(v)==='Scooter'){it.append(el('div','cap','Rider and pillion'),el('div','',v.s+' seats: rider and one pillion. Storage: '+(boot==='—'?'none, so carry a bag or add a top box.':boot)))}
+  else{it.append(el('div','cap','Capacity'),el('div','',(v.s>1?v.s+' seats. ':'Operator seat. ')+LBL[catOf(v)]+': '+boot))}
+  gl.append(ex,it);p.append(gl,el('p','note','These are illustrations by body type, not photographs of this exact model. See the real car at the showroom.'));
+  paint();
+  p.append(el('h3','sec','Price by variant (estimate)'));
+  p.append(tbl((catOf(v)==='Car'?[['Base',1],['Mid',1.2],['Top',1.45]]:[['Base',1],['Mid',1.1],['Top',1.2]]).map(r=>{const x=v.p*r[1];return [r[0],P(x)+' ex-showroom','≈ '+P(x*1.13)+' on-road']})));
+  p.append(el('p','note','Variant steps and the on-road uplift (about 13%) are rough estimates. Ask the dealer for an exact quote.'));
+  p.append(el('h3','sec','Safety rating'));
+  const sf=SAF[v.n],k0=catOf(v);
+  p.append(el('div','',sf?stars(sf[0])+'  '+sf[0]+' of 5 stars ('+sf[1]+')':'No crash-test rating in this page’s data for this model.'));
+  p.append(el('p','note',k0==='Car'?'Ratings apply to the model as tested, often a different fuel or variant, and protocols differ by year. Check the latest result on bncap.in or globalncap.org, and look for 6 airbags, ABS and ESC.':(k0==='Bike'||k0==='Scooter')?'Look for ABS (CBS at minimum), good tyres and an ISI-mark helmet.':'Check ABS, seat belts or restraints, and the safety features your permit requires.'));
+  p.append(el('h3','sec','EMI, fuel cost and ownership cost'));
+  costPlanner(p,v);
+  p.append(el('h3','sec','Best time to buy'));
+  const f=v.f==='EV'?1.4:(v.b==='SUV'||v.b==='MPV')?0.7:1;
+  const ds=BASE.map(x=>x>0?x*f:x);
+  const mx=Math.max(...ds),best=ds.indexOf(mx);
+  const ch=el('div','chart');
+  ds.forEach((d,i)=>{const c=el('div','col'+(i===best?' best':'')+(i===now?' now':''));c.append(el('div','',d>=0?'−'+d.toFixed(1)+'%':'+'+(-d).toFixed(1)+'%'));const b=el('div','bx'+(d<0?' neg':''));b.style.height=Math.max(4,Math.abs(d)/6.5*70)+'px';c.append(b,el('div','',MON[i]));ch.append(c)});
+  const cs=el('div','sc');cs.append(ch);p.append(cs);
+  const nowTxt=ds[now]<0?'Prices often rise this month, so consider waiting.':ds[now]>=mx*0.6?'This is a relatively good discount window.':'Offers are about average this month.';
+  p.append(el('p','','Typical pattern: the biggest price cut is usually in '+MON[best]+' (about '+P(v.p*mx/100)+' off the listed price) as dealers clear old stock. January often brings price hikes, and festive weeks can mean longer waits. '+MON[now]+' now: '+nowTxt),el('p','note','Illustrative seasonal pattern, not live pricing. Cars made in an earlier year may carry the bigger discounts but resell as an older model year.'));
+  p.append(el('h3','sec','Showrooms in Amritsar'));
+  const key=(catOf(v)==='Bike'||catOf(v)==='Scooter'?'B:':'')+v.n.split(' ')[0],L=['Three','Tractor','Truck','Bus'].includes(catOf(v))?[]:(SH[key]||[]);
+  if(L.length)L.forEach(x=>{const c=el('div','shw');c.append(el('strong','',x[0]),el('div','m',x[1]));if(x[2])c.append(el('div','m','Phone: '+x[2]));p.append(c)});
+  else p.append(el('p','','No Amritsar showroom is listed here for '+v.n.split(' ')[0]+'. Ask the brand’s customer care for the nearest authorised dealer.'));
+  p.append(el('p','note','Dealer details come from a Google Maps snapshot taken in November 2026. Confirm timings and current offers by phone before you visit.'));
+  p.append(el('h3','sec','Things to know before you buy'));
+  const ul=el('ul');[FN[v.f],...(catOf(v)==='Car'?CHK:(catOf(v)==='Bike'||catOf(v)==='Scooter')?CHK2:CHK3)].forEach(x=>ul.append(el('li','',x)));p.append(ul);
+  const bt=el('button','','🤖 Ask Claude: should I buy this now?');bt.style.marginTop='16px';
+  const out=el('div','ai2');
+  bt.onclick=async()=>{
+    let s=null;try{s=await claude.use('sample')}catch(e){}
+    if(!s){out.textContent='AI isn’t available in this view.';return}
+    out.textContent='Thinking…';bt.disabled=true;
+    const pr='You are a friendly Indian vehicle-buying advisor. Buyer city: '+city+'. Current month: '+MON[now]+'.\nCar: '+JSON.stringify({name:v.n,price_lakh:v.p,fuel:v.f,body:v.b,seats:v.s})+'\nBuyer profile: '+JSON.stringify(LAST.q)+'\nNotes: '+(LAST.notes||'none')+'\n\nIn plain text with no markdown, under 150 words: say whether now is a good time to buy this car or whether to wait, give 3 negotiation or checking tips, and one running-cost point. Be honest that prices and offers vary by dealer and should be confirmed.';
+    try{await s(pr,{cache:false,onText:({text})=>{out.textContent=text}})}catch(e){out.textContent=(e&&e.code==='not_granted')?'AI access was declined.':'Couldn’t get the AI answer right now. Try again shortly.'}
+    bt.disabled=false;
+  };
+  p.append(bt,out);
+  p.scrollIntoView({behavior:'smooth'});
+}
+
+const CATB={Hatchback:'Car',Sedan:'Car',SUV:'Car',MPV:'Car',Scooter:'Scooter',Pickup:'Utility','Mini truck':'Utility',Auto:'Three','E-rickshaw':'Three','Cargo three-wheeler':'Three',Tractor:'Tractor','Light truck':'Truck','Medium truck':'Truck','Heavy truck':'Truck','Traveller van':'Bus','Mini bus':'Bus',Bus:'Bus'};
+const catOf=v=>CATB[v.b]||'Bike';
+const LBL={Car:'Boot space',Utility:'Load capacity',Three:'Load or passengers',Truck:'Payload',Tractor:'Hydraulic lift',Bus:'Capacity',Bike:'Storage',Scooter:'Storage'};
+const CHK3=['Ask for the full on-road price, including permit, insurance and any body or trailer.','Check payload or seating capacity and the registration and permit rules for your use.','Check warranty, service network and spare-parts availability near you.','Compare finance, subsidy and exchange offers before you sign.'];
+const P=x=>x<3?'₹'+Math.round(x*1e5).toLocaleString('en-IN'):'₹'+(+x.toFixed(2))+' lakh';
+const CHK2=['Ask for the full on-road price (insurance, registration, helmet, accessories).','Test it for comfort, braking (ABS or CBS) and load or pillion handling.','Check warranty, service interval and your nearest authorised service centre.','Compare finance and exchange offers before you sign.'];
+const CFG={
+Car:{min:4,max:40,step:.5,def:12,bodies:['Hatchback','Sedan','SUV','MPV'],fuels:['Petrol','Diesel','CNG','Hybrid','EV'],brands:[['Maruti'],['Tata'],['Hyundai'],['Mahindra'],['Toyota'],['Honda'],['Kia'],['MG'],['Skoda'],['Volkswagen'],['Renault'],['Nissan'],['Citroen'],['Jeep'],['BYD']],uses:[['city','City commute'],['hwy','Highway / long trips'],['fam','Family'],['pwr','Rough roads / power']]},
+Bike:{min:.5,max:6,step:.05,def:1.5,bodies:['Commuter','Sports','Cruiser','Adventure'],fuels:['Petrol','CNG','EV'],brands:[['Hero'],['Honda'],['Bajaj'],['TVS'],['Royal','Royal Enfield'],['Yamaha'],['KTM'],['Revolt']],uses:[['city','City commute'],['hwy','Highway / touring'],['fam','Daily with pillion'],['pwr','Performance / off-road']]},
+Scooter:{min:.5,max:2.5,step:.05,def:1,bodies:['Scooter'],fuels:['Petrol','EV'],brands:[['Honda'],['TVS'],['Suzuki'],['Hero'],['Yamaha'],['Ola'],['Ather'],['Bajaj']],uses:[['city','City commute'],['hwy','Longer commute'],['fam','Family errands'],['pwr','Hilly roads / load']]},
+Utility:{min:3,max:20,step:.5,def:8,bodies:['Pickup','Mini truck'],fuels:['Diesel','Petrol','CNG','EV'],brands:[['Mahindra'],['Tata'],['Maruti'],['Ashok','Ashok Leyland']],uses:[['city','Local delivery'],['hwy','Highway loads'],['fam','Passengers and load'],['pwr','Heavy payload / rough roads']]},
+Three:{min:1,max:6,step:.1,def:3,bodies:['Auto','E-rickshaw','Cargo three-wheeler'],fuels:['Petrol','Diesel','CNG','EV'],brands:[['Bajaj'],['Piaggio'],['Mahindra'],['Atul']],uses:[['city','City passengers'],['hwy','Longer routes'],['fam','Shared or rental'],['pwr','Heavy cargo']]},
+Tractor:{min:4,max:16,step:.5,def:8,bodies:['Tractor'],fuels:['Diesel'],brands:[['Mahindra'],['Swaraj'],['Sonalika'],['John','John Deere'],['Eicher'],['Massey','Massey Ferguson'],['Kubota']],uses:[['city','Small farm or orchard'],['hwy','Haulage and trailers'],['fam','General farm work'],['pwr','Heavy tillage']]},
+Truck:{min:8,max:60,step:1,def:20,bodies:['Light truck','Medium truck','Heavy truck'],fuels:['Diesel'],brands:[['Tata'],['Ashok','Ashok Leyland'],['Mahindra'],['Eicher'],['BharatBenz']],uses:[['city','City distribution'],['hwy','Highway haulage'],['fam','Mixed loads'],['pwr','Heavy payload / rough roads']]},
+Bus:{min:10,max:60,step:1,def:25,bodies:['Traveller van','Mini bus','Bus'],fuels:['Diesel'],brands:[['Force'],['Tata'],['Ashok','Ashok Leyland'],['Eicher']],uses:[['city','City or school routes'],['hwy','Intercity and tours'],['fam','Staff or family groups'],['pwr','Hill or rough roads']]}};
+function autoSVG(c){const w=x=>'<circle cx="'+x+'" cy="86" r="15" fill="#12181a"/><circle cx="'+x+'" cy="86" r="6" fill="#c7cdd0"/>';return '<svg viewBox="0 0 300 110"><ellipse cx="150" cy="104" rx="125" ry="5" style="fill:var(--bd)"/><path d="M70 84V46Q70 36 82 34L120 28H210Q226 28 230 44V84Z" fill="'+c+'" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><path d="M84 40L118 34H146V56H84ZM154 34H206Q216 34 220 44V56H154Z" fill="#1c2f33" opacity=".85"/><rect x="66" y="62" width="8" height="6" rx="3" fill="#fff7c2"/>'+w(88)+w(214)+'</svg>'}
+function tractorSVG(c){return '<svg viewBox="0 0 300 120"><ellipse cx="150" cy="114" rx="125" ry="5" style="fill:var(--bd)"/><rect x="58" y="22" width="6" height="30" fill="#6f7a7d"/><path d="M40 74V52Q40 44 50 44H128V74Z" fill="'+c+'" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><path d="M128 40H196V78H128Z" fill="'+c+'" stroke="rgba(0,0,0,.35)"/><path d="M156 26H196L204 40H150Z" fill="#1c2f33"/><circle cx="78" cy="96" r="17" fill="#12181a"/><circle cx="78" cy="96" r="7" fill="#c7cdd0"/><circle cx="200" cy="84" r="30" fill="#12181a"/><circle cx="200" cy="84" r="12" fill="#c7cdd0"/></svg>'}
+function lorrySVG(c){const w=x=>'<circle cx="'+x+'" cy="88" r="17" fill="#12181a"/><circle cx="'+x+'" cy="88" r="7" fill="#c7cdd0"/>';return '<svg viewBox="0 0 300 110"><ellipse cx="150" cy="104" rx="130" ry="5" style="fill:var(--bd)"/><rect x="96" y="22" width="192" height="60" rx="4" fill="#c7cdd0" stroke="rgba(0,0,0,.35)"/><rect x="96" y="50" width="192" height="8" fill="'+c+'"/><path d="M10 84V44Q10 34 22 32L62 30L92 52V84Z" fill="'+c+'" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><path d="M24 38H58L80 52H24Z" fill="#1c2f33"/>'+w(48)+w(190)+w(250)+'</svg>'}
+function busSVG(c){const w=x=>'<circle cx="'+x+'" cy="88" r="16" fill="#12181a"/><circle cx="'+x+'" cy="88" r="6" fill="#c7cdd0"/>';let ws='';for(let i=0;i<6;i++)ws+='<rect x="'+(60+i*36)+'" y="34" width="28" height="22" rx="3" fill="#1c2f33" opacity=".85"/>';return '<svg viewBox="0 0 300 110"><ellipse cx="150" cy="104" rx="130" ry="5" style="fill:var(--bd)"/><rect x="12" y="24" width="276" height="60" rx="10" fill="'+c+'" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><rect x="20" y="34" width="30" height="30" rx="3" fill="#1c2f33" opacity=".85"/>'+ws+w(62)+w(240)+'</svg>'}
+function drawV(v,c){const k=catOf(v);return k==='Bike'?bikeSVG(c):k==='Scooter'?scooterSVG(c):k==='Utility'?truckSVG(c):k==='Three'?autoSVG(c):k==='Tractor'?tractorSVG(c):k==='Truck'?lorrySVG(c):k==='Bus'?busSVG(c):carSVG(v.b,c)}
+function showBudget(){$('bv').textContent=P(+$('budget').value)}
+function fill(sel,arr,any){sel.textContent='';if(any){const o=document.createElement('option');o.value='';o.textContent=any;sel.append(o)}arr.forEach(a=>{const o=document.createElement('option');o.value=a[0];o.textContent=a[1]||a[0];sel.append(o)})}
+function setCat(){const k=$('cat').value,c=CFG[k],b=$('budget');b.min=c.min;b.max=c.max;b.step=c.step;b.value=c.def;showBudget();fill($('body'),c.bodies.map(x=>[x]),'Any');$('fbody').hidden=c.bodies.length<2;fill($('brand'),c.brands,'Any brand');fill($('use'),c.uses);fill($('fuel'),c.fuels.map(x=>[x]),'Any');$('fseats').hidden=k!=='Car';$('ftrans').hidden=k!=='Car';$('fsafe').hidden=k!=='Car'}
+function bikeSVG(c){return '<svg viewBox="0 0 300 120"><ellipse cx="150" cy="112" rx="125" ry="5" style="fill:var(--bd)"/><circle cx="70" cy="90" r="22" fill="none" stroke="#12181a" stroke-width="7"/><circle cx="230" cy="90" r="22" fill="none" stroke="#12181a" stroke-width="7"/><path d="M70 90L96 46M112 58L150 88H214L230 90M112 58L170 56L214 70" stroke="#6f7a7d" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M112 54Q132 34 168 44L176 58H114Z" fill="'+c+'" stroke="rgba(0,0,0,.35)"/><path d="M178 54Q206 44 226 52L220 62H180Z" fill="#1c2f33"/><rect x="128" y="62" width="44" height="26" rx="7" fill="#4a5457"/><path d="M96 46L90 34H104" stroke="#12181a" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="84" cy="52" r="6" fill="#fff7c2" stroke="rgba(0,0,0,.3)"/></svg>'}
+function scooterSVG(c){return '<svg viewBox="0 0 300 120"><ellipse cx="150" cy="112" rx="125" ry="5" style="fill:var(--bd)"/><circle cx="84" cy="92" r="18" fill="#12181a"/><circle cx="84" cy="92" r="7" fill="#c7cdd0"/><circle cx="226" cy="92" r="18" fill="#12181a"/><circle cx="226" cy="92" r="7" fill="#c7cdd0"/><path d="M98 36H110L116 82H178L186 58Q212 48 238 60L242 84Q236 96 214 94H112L96 94Z" fill="'+c+'" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><path d="M180 54Q208 44 236 56V62H180Z" fill="#1c2f33"/><path d="M98 36L92 22H108" stroke="#12181a" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="94" cy="44" r="6" fill="#fff7c2" stroke="rgba(0,0,0,.3)"/></svg>'}
+function truckSVG(c){const w=x=>'<circle cx="'+x+'" cy="88" r="17" fill="#12181a"/><circle cx="'+x+'" cy="88" r="7" fill="#c7cdd0"/>';return '<svg viewBox="0 0 300 110"><ellipse cx="150" cy="104" rx="125" ry="5" style="fill:var(--bd)"/><rect x="100" y="52" width="186" height="32" rx="3" fill="#8a9498" stroke="rgba(0,0,0,.35)"/><path d="M14 86V50Q14 40 26 38L66 36L96 56V86Z" fill="'+c+'" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><path d="M30 44H62L84 56H30Z" fill="#1c2f33"/><rect x="12" y="66" width="8" height="6" rx="3" fill="#fff7c2"/>'+w(54)+w(226)+'</svg>'}
+const SAF={'Tata Punch':[5,'Global NCAP'],'Tata Altroz':[5,'Global NCAP'],'Tata Nexon EV':[5,'Bharat NCAP'],'Tata Harrier':[5,'Bharat NCAP'],'Tata Safari':[5,'Bharat NCAP'],'Tata Curvv EV':[5,'Bharat NCAP'],'Tata Punch EV':[5,'Bharat NCAP'],'Tata Tiago CNG':[4,'Global NCAP'],'Tata Tigor CNG':[4,'Global NCAP'],'Mahindra XUV700':[5,'Global NCAP'],'Mahindra Scorpio-N':[5,'Global NCAP'],'Mahindra Thar':[4,'Global NCAP'],'Mahindra XUV 3XO':[5,'Bharat NCAP'],'Mahindra BE 6':[5,'Bharat NCAP'],'Mahindra XEV 9e':[5,'Bharat NCAP'],'Mahindra Bolero Neo':[1,'Global NCAP'],'Maruti Dzire CNG':[5,'Global NCAP'],'Maruti Brezza CNG':[4,'Global NCAP'],'Maruti Ertiga CNG':[3,'Global NCAP'],'Maruti Alto K10':[2,'Global NCAP'],'Maruti S-Presso':[1,'Global NCAP'],'Hyundai Verna':[5,'Global NCAP'],'Volkswagen Virtus':[5,'Global NCAP'],'Volkswagen Taigun':[5,'Global NCAP'],'Skoda Slavia':[5,'Global NCAP'],'Skoda Kushaq':[5,'Global NCAP'],'Skoda Kylaq':[5,'Bharat NCAP'],'Renault Kiger':[4,'Global NCAP'],'Nissan Magnite':[4,'Global NCAP'],'Kia Carens':[3,'Global NCAP']};
+const DC={'Swani Motors (Maruti Suzuki Arena)':[31.6363,74.8687],'Jaycee Motors (Maruti Suzuki Arena)':[31.6222,74.8984],'Rishabh Fourwheels (Maruti Suzuki Arena)':[31.6459,74.9012],'Novelty Tata, New Amritsar':[31.6097,74.9258],'Novelty Tata, White Avenue':[31.6426,74.8692],'Novelty Hyundai':[31.6096,74.9259],'Aryan Hyundai':[31.667,74.9114],'Worldwide Autozone (SUV and Commercial)':[31.6115,74.9397],'Worldwide Autozone, Ranjit Avenue':[31.6557,74.8594],'Mahindra Sangam Automobiles':[31.6398,74.8722],'Castle Toyota (JPA Motors)':[31.6045,74.9369],'Deep Honda':[31.6706,74.8848],'Prestige Honda':[31.6043,74.937],'Gitansh Kia':[31.6404,74.8644],'Speedways Kia':[31.6036,74.9381],'MG Motor, Cargo Motor Showroom':[31.6027,74.9402],'Volkswagen Amritsar (Lally Motors)':[31.6045,74.9365],'HD Skoda Showroom':[31.6054,74.9344],'Renault Amritsar':[31.6084,74.9294],'M R Nissan':[31.606,74.9334],'Speedways Hero MotoCorp':[31.6381,74.8753],'Rishabh Autos Hero MotoCorp':[31.646,74.9007],'Aryan Honda':[31.6426,74.8602],'Bhagwati Honda':[31.6333,74.8513],'Doaba Bajaj':[31.6363,74.87],'Doaba Bajaj, Ram Talai':[31.6273,74.891],'Balaji Motors TVS':[31.66,74.8727],'Prabhat Autowheelz TVS':[31.6339,74.8522],'Royal Enfield, Aaray Motors':[31.6571,74.8599],'Royal Enfield, Jaycee Motors':[31.6345,74.8614],'AKS Motors Yamaha':[31.6483,74.8627],'Divine Yamaha':[31.633,74.8449],'KTM Husqvarna Amritsar':[31.6361,74.8698],'Ather, Lawrence Road':[31.6418,74.8755],'Ola Electric Store':[31.6562,74.862],'Anupuma Suzuki':[31.6514,74.8869]};
+const R=x=>'₹'+Math.round(x).toLocaleString('en-IN');
+const FP={Petrol:100,Diesel:90,CNG:85,Hybrid:100,EV:8};
+const EVK={Car:.13,Bike:.035,Scooter:.03,Three:.1,Utility:.15,Truck:.9,Bus:1.2,Tractor:.5};
+const KMD={Car:1000,Bike:800,Scooter:500,Three:2500,Utility:2500,Truck:5000,Bus:5000,Tractor:80};
+const RES=[.85,.75,.67,.6,.53,.47,.42,.38,.34,.3];
+let CMP=[],FAV=[],LOC=null,HIST=[],SAMPLE=null;
+try{FAV=JSON.parse(localStorage.getItem('vadv_fav')||'[]').filter(n=>V.some(v=>v.n===n))}catch(e){}
+function saveFav(){try{localStorage.setItem('vadv_fav',JSON.stringify(FAV))}catch(e){}}
+function vOf(n){return V.find(v=>v.n===n)}
+function stars(n){return '\u2605'.repeat(n)+'\u2606'.repeat(5-n)}
+function emi(loan,rate,yrs){const r=rate/1200,n=Math.max(1,yrs)*12;if(loan<=0)return{e:0,i:0};const e=r?loan*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1):loan/n;return{e,i:e*n-loan}}
+function fuelM(v,km,pr){if(v.f==='EV')return km*EVK[catOf(v)]*pr;if(catOf(v)==='Tractor')return km*v.m*pr;return km/v.m*pr}
+function dflt(v){const k=catOf(v);return{km:KMD[k],pr:FP[v.f]||100,yrs:5,down:20,rate:k==='Car'?9.5:(k==='Bike'||k==='Scooter')?11:12,ly:k==='Car'?5:3}}
+function tco(v,o){const ex=v.p*1e5,on=ex*1.13,k=catOf(v),L=emi(on*(1-o.down/100),o.rate,o.ly),yrs=Math.min(10,Math.max(1,o.yrs)),fm=fuelM(v,o.km,o.pr),fuel=fm*12*yrs,mr=k==='Car'?.02:(k==='Bike'||k==='Scooter')?.035:.04,maint=ex*mr*yrs,ins=ex*.025*(yrs-1),res=ex*RES[yrs-1]*(v.f==='EV'?.9:1);return{on,fuel,maint,ins,interest:L.i,res,fm,emi:L.e,yrs,net:on+fuel+maint+ins+L.i-res}}
+function card(t,rows,big){const c=el('div','cc');c.append(el('h4','',t),el('div','big',big));rows.forEach(r=>{const d=el('div','kv');d.append(el('span','',r[0]),el('strong','',r[1]));c.append(d)});return c}
+function inp(lbl,val,min,max,step,cb){const w=el('div');w.append(el('label','',lbl));const i=document.createElement('input');i.type='number';i.value=val;i.min=min;i.max=max;i.step=step;i.oninput=()=>cb(+i.value||0);w.append(i);return w}
+function costPlanner(p,v){
+  const o=dflt(v),k=catOf(v),tr=k==='Tractor',unit=v.f==='EV'?'₹ per kWh':v.f==='CNG'?'₹ per kg':'₹ per litre';
+  const g=el('div','grid'),out=el('div','res3');
+  const upd=()=>{const t=tco(v,o);out.textContent='';
+    out.append(card('EMI calculator',[['On-road price (est.)',R(t.on)],['Down payment',R(t.on*o.down/100)],['Loan amount',R(t.on*(1-o.down/100))],['Total interest',R(t.interest)]],R(t.emi)+' a month'));
+    out.append(card('Fuel cost',[[tr?'Per hour':'Per km','₹'+(t.fm/Math.max(1,o.km)).toFixed(2)],['Per year',R(t.fm*12)],['Over '+t.yrs+' years',R(t.fuel)]],R(t.fm)+' a month'));
+    const c=el('div','cc');c.append(el('h4','','Total cost of ownership, '+t.yrs+' years'),el('div','big',R(t.net)));
+    const seg=[['On-road price',t.on,'var(--ac)'],['Fuel',t.fuel,'var(--amb)'],['Servicing',t.maint,'#2e5fa3'],['Insurance renewals',t.ins,'#8a6fd1'],['Loan interest',t.interest,'#c0392b']],tot=seg.reduce((a,x)=>a+x[1],0)||1,bar=el('div','stk');
+    seg.forEach(x=>{const i=el('i');i.style.width=(x[1]/tot*100)+'%';i.style.background=x[2];bar.append(i)});c.append(bar);
+    seg.forEach(x=>{const d=el('div','kv'),s=el('span'),b=el('b','dotc');b.style.background=x[2];s.append(b,document.createTextNode(x[0]));d.append(s,el('strong','',R(x[1])));c.append(d)});
+    [['Resale value (est.)','− '+R(t.res)],[tr?'Per hour':'Per km','₹'+(t.net/Math.max(1,o.km*12*t.yrs)).toFixed(2)]].forEach(r=>{const d=el('div','kv');d.append(el('span','',r[0]),el('strong','',r[1]));c.append(d)});
+    out.append(c)};
+  [['Down payment %','down',0,90,5],['Loan interest % a year','rate',5,25,.5],['Loan years','ly',1,8,1],[tr?'Hours per month':'Km per month','km',0,30000,50],['Fuel price ('+unit+')','pr',1,200,1],['Own for (years)','yrs',1,10,1]].forEach(a=>g.append(inp(a[0],o[a[1]],a[2],a[3],a[4],x=>{o[a[1]]=x;upd()})));
+  p.append(g,out,el('p','note','Estimates only. Fuel prices, servicing cost (about 2 to 4% of price a year), insurance (about 2.5% a year), resale value and the 13% on-road uplift are assumptions. Change the numbers to match your quote.'));upd()}
+function acts(v){const a=el('div','acts'),c=el('button','mini'),f=el('button','mini');
+  const lab=()=>{c.textContent=CMP.includes(v.n)?'✓ Comparing':'Compare';c.classList.toggle('on',CMP.includes(v.n));f.textContent=FAV.includes(v.n)?'♥ Saved':'♡ Save';f.classList.toggle('on',FAV.includes(v.n))};
+  c.onclick=e=>{e.stopPropagation();togCmp(v.n);lab()};f.onclick=e=>{e.stopPropagation();togFav(v.n);lab()};lab();a.append(c,f);if(SAF[v.n])a.append(el('span','sfc','Safety '+stars(SAF[v.n][0])));return a}
+function togCmp(n){const i=CMP.indexOf(n);if(i>=0)CMP.splice(i,1);else{CMP.push(n);if(CMP.length>3)CMP.shift()}tabs()}
+function togFav(n){const i=FAV.indexOf(n);if(i>=0)FAV.splice(i,1);else FAV.push(n);saveFav();tabs()}
+function tabs(){$('tbCmp').textContent='Compare'+(CMP.length?' ('+CMP.length+')':'');$('tbFav').textContent='Saved'+(FAV.length?' ('+FAV.length+')':'')}
+function tab(n){['advisor','compare','shops','favs','tools','chat'].forEach(t=>{$('t-'+t).hidden=t!==n;document.querySelector('[data-tab='+t+']').classList.toggle('on',t===n)});if(n==='compare')drawCmp();if(n==='shops')drawShops();if(n==='favs')drawFavs()}
+function openV(v){tab('advisor');show(v)}
+function drawCmp(){const box=$('cmpBox');box.textContent='';const L=CMP.map(vOf).filter(Boolean);
+  if(!L.length){box.append(el('p','','Nothing to compare yet. Tap Compare on a result card, or pick up to 3 vehicles above.'));return}
+  const o=v=>dflt(v),T=v=>tco(v,o(v)),un=v=>v.f==='EV'?' km range':catOf(v)==='Tractor'?' L/hr':' km/l',d=v=>D[v.n].split('|');
+  const rows=[['Type',v=>catOf(v)],['Ex-showroom price',v=>P(v.p),v=>v.p],['Fuel',v=>v.f],['Body',v=>v.b],['Seats',v=>String(v.s)],['Engine or battery',v=>d(v)[0]],['Power',v=>d(v)[1]],['Transmission',v=>d(v)[2]],['Capacity',v=>d(v)[3]],['Mileage or range',v=>v.m+un(v)],['Safety rating',v=>SAF[v.n]?stars(SAF[v.n][0])+' ('+SAF[v.n][1]+')':'Not in data'],['Fuel cost a month',v=>R(T(v).fm),v=>T(v).fm],['Ownership cost, 5 years',v=>R(T(v).net),v=>T(v).net],['Monthly EMI',v=>R(T(v).emi),v=>T(v).emi]];
+  const t=el('table','cmp'),h=el('tr');h.append(el('th','',''));L.forEach(v=>{const th=el('th'),b=el('button','mini','Remove');b.onclick=()=>{togCmp(v.n);drawCmp()};th.append(el('div','',v.n),b);h.append(th)});t.append(h);
+  rows.forEach(r=>{const tr=el('tr'),vals=r[2]?L.map(r[2]):null,mn=vals&&L.length>1?Math.min(...vals):null;tr.append(el('td','k',r[0]));L.forEach((v,i)=>tr.append(el('td',vals&&vals[i]===mn?'best':'',r[1](v))));t.append(tr)});
+  box.append(t,el('p','note','Highlighted cells are the lowest in that row. Cost rows assume typical use, 20% down and a standard loan. Open a vehicle to change the assumptions.'))}
+function drawFavs(){const b=$('favBox');b.textContent='';if(!FAV.length){b.append(el('p','','No saved vehicles yet. Tap Save on any result.'));return}
+  FAV.map(vOf).filter(Boolean).forEach(v=>{const c=el('div','shw');c.append(el('strong','',v.n),el('div','m',P(v.p)+' · '+v.b+' · '+v.f));const a=el('div','acts'),o=el('button','mini','View'),m=el('button','mini','Compare'),r=el('button','mini','Remove');o.onclick=()=>openV(v);m.onclick=()=>{togCmp(v.n);m.textContent='✓ Added'};r.onclick=()=>{togFav(v.n);drawFavs()};a.append(o,m,r);c.append(a);b.append(c)})}
+function hav(a,b){const r=x=>x*Math.PI/180,dl=r(b[0]-a[0]),dn=r(b[1]-a[1]),h=Math.sin(dl/2)**2+Math.cos(r(a[0]))*Math.cos(r(b[0]))*Math.sin(dn/2)**2;return 12742*Math.asin(Math.sqrt(h))}
+function shopsAll(){const a=[];Object.keys(SH).forEach(k=>SH[k].forEach(x=>a.push({n:x[0],a:x[1],p:x[2],bike:k.startsWith('B:'),b:k.replace('B:',''),c:DC[x[0]]})));return a}
+function drawShops(){const ty=$('shType').value,q=$('shQ').value.trim().toLowerCase(),all=shopsAll().filter(s=>!ty||(ty==='bike')===s.bike),bs=[...new Set(all.map(s=>s.b))].sort(),cur=$('shBrand').value;
+  fill($('shBrand'),bs.map(x=>[x]),'All brands');if(bs.includes(cur))$('shBrand').value=cur;
+  let L=all.filter(s=>(!$('shBrand').value||s.b===$('shBrand').value)&&(!q||(s.n+' '+s.a).toLowerCase().includes(q)));
+  L.forEach(s=>{s.d=LOC&&s.c?hav(LOC,s.c):null});L.sort((x,y)=>LOC?(x.d??99)-(y.d??99):x.b.localeCompare(y.b));
+  const m=$('shMap');m.textContent='';const X=lo=>10+(lo-74.835)/.11*280,Y=la=>10+(31.675-la)/.08*190;let sv='<svg viewBox="0 0 300 210"><rect x="1" y="1" width="298" height="208" rx="10" style="fill:var(--card);stroke:var(--bd)"/>';
+  L.forEach((s,i)=>{if(!s.c)return;sv+='<circle cx="'+X(s.c[1])+'" cy="'+Y(s.c[0])+'" r="8" style="fill:'+(s.bike?'var(--ac)':'var(--amb)')+'"/><text x="'+X(s.c[1])+'" y="'+(Y(s.c[0])+3.5)+'" text-anchor="middle" font-size="9" font-weight="700" fill="#111">'+(i+1)+'</text>'});
+  if(LOC&&LOC[0]>31.675-.08&&LOC[0]<31.675&&LOC[1]>74.835&&LOC[1]<74.945)sv+='<circle cx="'+X(LOC[1])+'" cy="'+Y(LOC[0])+'" r="6" fill="#2e5fa3" stroke="#fff" stroke-width="2"/>';
+  m.innerHTML=sv+'</svg>';m.prepend(el('div','cap','Schematic map of Amritsar showrooms. Numbers match the list. Amber is cars, green is bikes'+(LOC?', blue is you.':'.')));
+  const b=$('shList');b.textContent='';if(!L.length)b.append(el('p','','No showrooms match. Try another brand or clear the search.'));
+  L.forEach((s,i)=>{const c=el('div','shw');c.append(el('strong','',(i+1)+'. '+s.n),el('div','m',s.a));if(s.p)c.append(el('div','m','Phone: '+s.p));if(s.d!=null)c.append(el('div','m','About '+s.d.toFixed(1)+' km from you (straight line)'));b.append(c)});
+  b.append(el('p','note','Dealer details come from a Google Maps snapshot taken in November 2026 and cover Amritsar only. Positions on the map are approximate. Call to confirm timings.'))}
+function makeTools(){
+  const E=$('toolEmi'),eo=el('div'),s={price:800000,down:20,rate:9.5,yrs:5},ru=()=>{const l=s.price*(1-s.down/100),r=emi(l,s.rate,s.yrs);eo.textContent='';eo.append(card('Result',[['Loan amount',R(l)],['Total interest',R(r.i)],['Total you pay',R(l+r.i+s.price*s.down/100)]],R(r.e)+' a month'))},g=el('div','grid');
+  [['On-road price (₹)','price',0,1e8,10000],['Down payment %','down',0,90,5],['Interest % a year','rate',1,30,.5],['Loan years','yrs',1,10,1]].forEach(a=>g.append(inp(a[0],s[a[1]],a[2],a[3],a[4],x=>{s[a[1]]=x;ru()})));E.append(g,eo);ru();
+  const F=$('toolFuel'),fo=el('div'),f={km:1000,mil:18,pr:100},fu=()=>{const m=f.km/Math.max(.1,f.mil)*f.pr;fo.textContent='';fo.append(card('Result',[['Per km','₹'+(f.pr/Math.max(.1,f.mil)).toFixed(2)],['Per year',R(m*12)],['Over 5 years',R(m*60)]],R(m)+' a month'))},fg=el('div','grid');
+  [['Km per month','km',0,30000,50],['Mileage (km per litre or kg)','mil',1,150,1],['Fuel price (₹ per litre or kg)','pr',1,200,1]].forEach(a=>fg.append(inp(a[0],f[a[1]],a[2],a[3],a[4],x=>{f[a[1]]=x;fu()})));F.append(fg,fo);fu()}
+async function ask(q){
+  if(!q)return;addMsg('u',q);const d=addMsg('a','Thinking…');$('chatGo').disabled=true;
+  if(!SAMPLE){try{SAMPLE=await claude.use('sample')}catch(e){}}
+  if(!SAMPLE){d.textContent='The AI assistant isn’t available in this view.';$('chatGo').disabled=false;return}
+  const cat=V.map(v=>v.n+'|'+catOf(v)+'|'+v.p+'L|'+v.f).join('; '),hist=HIST.slice(-6).map(h=>h[0]+': '+h[1]).join('\n');
+  const pr='You are Vahan Guide, a friendly vehicle-buying advisor for a buyer in Amritsar, Punjab, India. Use ONLY vehicles from this catalog (name|type|ex-showroom price in lakh|fuel): '+cat+'\nKnown safety stars: '+JSON.stringify(Object.fromEntries(Object.entries(SAF).map(a=>[a[0],a[1][0]])))+'\nBuyer form profile: '+JSON.stringify(LAST.q||{})+'\nChat so far:\n'+hist+'\nUser: '+q+'\n\nReply in plain text with no markdown symbols, under 150 words. Recommend up to 3 vehicles by exact catalog name with a reason, the price and one trade-off. Ask one short follow-up question if you need more detail. Say prices and specs are approximate and to confirm with a dealer. For EMI, fuel or ownership cost questions, give a rough calculation and state your assumptions.';
+  try{await SAMPLE(pr,{cache:false,onText:({text})=>{d.textContent=text;$('chatLog').scrollTop=1e9}})}catch(e){d.textContent=(e&&e.code==='not_granted')?'AI access was declined.':'Couldn’t get an answer right now. Try again shortly.'}
+  HIST.push(['User',q],['Assistant',d.textContent]);
+  const hits=V.filter(v=>d.textContent.includes(v.n)).slice(0,5);if(hits.length){const a=el('div','acts');hits.forEach(v=>{const b=el('button','mini','View '+v.n);b.onclick=()=>openV(v);a.append(b)});$('chatLog').append(a)}
+  $('chatGo').disabled=false;$('chatLog').scrollTop=1e9}
+function addMsg(r,t){const d=el('div','msg '+r,t);$('chatLog').append(d);$('chatLog').scrollTop=1e9;return d}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
+fill($('cmpPick'),V.slice().sort((a,b)=>catOf(a).localeCompare(catOf(b))||a.n.localeCompare(b.n)).map(v=>[v.n,v.n+' ('+catOf(v)+')']));
+$('cmpAdd').onclick=()=>{const n=$('cmpPick').value;if(n&&!CMP.includes(n))togCmp(n);drawCmp()};
+$('shType').onchange=()=>{$('shBrand').value='';drawShops()};$('shBrand').onchange=drawShops;$('shQ').oninput=drawShops;
+$('shLoc').onclick=()=>{$('shMsg').textContent='Finding you…';try{navigator.geolocation.getCurrentPosition(p=>{LOC=[p.coords.latitude,p.coords.longitude];$('shMsg').textContent='';drawShops()},()=>{$('shMsg').textContent='Location is blocked here. Allow location access, or browse the list by brand.'},{timeout:8000})}catch(e){$('shMsg').textContent='Location isn’t available in this view.'}};
+['Best car under 10 lakh for a family','Cheapest to run for 1,500 km a month','Safest car under 15 lakh','Compare EV and petrol scooter'].forEach(t=>{const b=el('button','mini',t);b.onclick=()=>{$('chatIn').value='';ask(t)};$('chatChips').append(b)});
+$('chatGo').onclick=()=>{const q=$('chatIn').value.trim();$('chatIn').value='';ask(q)};$('chatIn').onkeydown=e=>{if(e.key==='Enter')$('chatGo').click()};
+addMsg('a','Hi, I’m Vahan Guide. Tell me your budget and how you drive, or ask me to compare vehicles, work out an EMI or estimate running costs.');
+let SORT='match',CURL=[];
+function mark(){document.querySelectorAll('#sortChips [data-s]').forEach(b=>b.classList.toggle('on',b.dataset.s===SORT))}
+function resort(k){SORT=k;const L=CURL.slice();if(k==='price')L.sort((a,b)=>a.p-b.p);else if(k==='run')L.sort((a,b)=>tco(a,dflt(a)).fm-tco(b,dflt(b)).fm);else if(k==='safe')L.sort((a,b)=>(SAF[b.n]?SAF[b.n][0]:0)-(SAF[a.n]?SAF[a.n][0]:0)||b.score-a.score);render(L);mark()}
+function copyTxt(t,btn){const o=btn.textContent,done=()=>{btn.textContent='Copied';setTimeout(()=>{btn.textContent=o},1500)},fb=()=>{const a=document.createElement('textarea');a.value=t;document.body.append(a);a.select();try{document.execCommand('copy')}catch(e){}a.remove();done()};try{navigator.clipboard.writeText(t).then(done,fb)}catch(e){fb()}}
+document.querySelectorAll('#sortChips [data-s]').forEach(b=>b.onclick=()=>{if(CURL.length)resort(b.dataset.s)});
+$('copyRes').onclick=()=>copyTxt(CURL.slice(0,8).map((v,i)=>(i+1)+'. '+v.n+' - '+P(v.p)+' ('+v.f+')').join('\n')||'No results yet',$('copyRes'));
+function makeAfford(){const E=$('toolAff'),o=el('div'),s={emi:15000,down:150000,rate:9.5,yrs:5};
+  const ru=()=>{const r=s.rate/1200,n=s.yrs*12,loan=r?s.emi*(Math.pow(1+r,n)-1)/(r*Math.pow(1+r,n)):s.emi*n,on=loan+s.down,ex=on/1.13/1e5;o.textContent='';o.append(card('You can aim for about',[['Loan you can service',R(loan)],['Total on-road budget',R(on)],['Ex-showroom price (est.)',ex.toFixed(1)+' lakh']],ex.toFixed(1)+' lakh'));const b=el('button','','Find cars in this budget');b.style.marginTop='12px';b.onclick=()=>{$('cat').value='Car';setCat();const bd=$('budget');bd.value=Math.max(+bd.min,Math.min(+bd.max,Math.round(ex*2)/2));showBudget();tab('advisor');$('go').click()};o.append(b)},g=el('div','grid');
+  [['Monthly EMI you can pay (₹)','emi',0,1e6,500],['Down payment (₹)','down',0,1e8,10000],['Interest % a year','rate',1,30,.5],['Loan years','yrs',1,10,1]].forEach(a=>g.append(inp(a[0],s[a[1]],a[2],a[3],a[4],x=>{s[a[1]]=x;ru()})));E.append(g,o);ru()}
+const TIPS=['January: price hikes are common, so waiting a month can help.','February: year-end clearance starts. Ask about old-stock discounts.','March: financial year-end deals are among the best of the year.','April: new-year price rises are common, so offers are thin.','May: offers are average. A good month for test drives.','June: average offers. Look for monsoon service camps.','July: moderate offers. Good for negotiating accessories.','August: moderate offers before the festive rush.','September: pre-festive offers start. Book early for popular models.','October: festive offers arrive, but so do waiting periods.','November: festive offers are ending. December year-end deals often follow.','December: year-end clearance, often the best discounts of the year.'];
+$('tip').textContent='📅 This month: '+TIPS[new Date().getMonth()];
+$('themeBtn').textContent=matchMedia('(prefers-color-scheme:dark)').matches?'☀':'☾';
+$('themeBtn').onclick=()=>{const r=document.documentElement,dk=(r.dataset.theme||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'))==='dark';r.dataset.theme=dk?'light':'dark';$('themeBtn').textContent=dk?'☾':'☀'};
+makeAfford();
+makeTools();tabs();
+$('cat').onchange=setCat;$('budget').oninput=showBudget;setCat();
+
+$("go").onclick=async()=>{
+  const q={budget:+$("budget").value,body:$("body").value,fuel:$("fuel").value,cat:$("cat").value,seats:$("cat").value==="Car"?+$("seats").value:0,use:$("use").value,km:$("km").value,brand:$("brand").value,trans:$("cat").value==="Car"?$("trans").value:"",safe:$("cat").value==="Car"?$("safe").value:""};
+  const notes=$("notes").value.trim();
+  const list=rank(q);CURL=list;SORT='match';mark();LAST={q,notes};$('detail').hidden=true;
+  $("out").hidden=false;render(list);
+  const ai=$("ai");ai.className="";
+  if(!list.length){ai.textContent="No vehicles fit these limits, so there is nothing to compare yet.";return}
+  ai.textContent="Thinking…";
+  let sample=null;
+  try{sample=await claude.use("sample")}catch(e){}
+  if(!sample){ai.className="note";ai.textContent="AI explanation isn’t available in this view. The ranked list below still works.";return}
+  const top=list.slice(0,6).map(v=>({name:v.n,price_lakh:v.p,fuel:v.f,body:v.b,seats:v.s,efficiency:v.m+(v.f==="EV"?" km range":" km/l"),score:v.score}));
+  const prompt="You are a friendly Indian vehicle-buying advisor. The buyer is in Punjab, India.\nBuyer profile: "+JSON.stringify(q)+"\nExtra notes: "+(notes||"none")+"\nShortlist (already ranked): "+JSON.stringify(top)+
+  "\n\nWrite a short recommendation in plain text, no markdown symbols. Format: first line 'Best pick: <name>' then 2–3 sentences on why. Then 'Runner-ups:' with one line each for the next two, and 'Watch out for:' with one honest trade-off or running-cost point. Only recommend vehicles from the shortlist. Under 170 words.";
+  $("go").disabled=true;
+  try{
+    await sample(prompt,{cache:false,onText:({text})=>{ai.textContent=text}});
+  }catch(e){
+    if(e&&e.code==="not_granted"){ai.className="note";ai.textContent="AI access was declined. The ranked list below still works."}
+    else{ai.className="err";ai.textContent="Couldn’t get the AI explanation right now ("+((e&&e.code)||"error")+"). Try again in a moment."}
+  }
+  $("go").disabled=false;
+};
+</script>
+</body>
+</html>
